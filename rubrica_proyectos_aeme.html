@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rúbrica de Proyectos — AEME Asesores</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #F7F6F3; --surface: #FFFFFF; --surface-alt: #F0EEE9;
+    --border: #E0DDD6; --border-strong: #C8C4BC;
+    --text-primary: #1A1917; --text-secondary: #6B6862; --text-muted: #A09C96;
+    --accent: #1A56A0; --accent-light: #EBF2FB; --accent-text: #0F3870;
+    --green: #1E6B3A; --green-light: #EAF5EE; --green-text: #134726;
+    --amber: #8B5E00; --amber-light: #FEF6E4; --amber-text: #5C3D00;
+    --red: #A82020; --red-light: #FDECEC; --red-text: #721515;
+    --purple: #5B3FA0; --purple-light: #F0EBFB; --purple-text: #3A2470;
+    --radius: 6px; --radius-lg: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-primary); font-size: 14px; line-height: 1.6; min-height: 100vh; }
+
+  /* HEADER */
+  .page-header { background: #0F2744; color: #fff; padding: 1.25rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: .75rem; }
+  .brand-mark { width: 36px; height: 36px; background: var(--accent); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #fff; letter-spacing: .05em; flex-shrink: 0; }
+  .brand-name { font-size: 15px; font-weight: 500; }
+  .brand-sub { font-size: 12px; color: #7B9EC4; margin-top: 1px; }
+
+  /* TABS */
+  .tabs-bar { background: #0A1E36; border-bottom: 1px solid #1A3A5C; display: flex; align-items: center; padding: 0 2rem; gap: 0; overflow-x: auto; }
+  .tab-btn { padding: .75rem 1.1rem; font-size: 13px; font-family: 'Inter', sans-serif; color: #7B9EC4; background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: color .15s, border-color .15s; }
+  .tab-btn:hover { color: #fff; }
+  .tab-btn.active { color: #fff; border-bottom-color: var(--accent); }
+  .tab-btn .tab-name { max-width: 130px; overflow: hidden; text-overflow: ellipsis; display: inline-block; vertical-align: middle; }
+  .tab-btn .close-tab { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; font-size: 14px; line-height: 1; color: #4A6A8A; margin-left: 6px; vertical-align: middle; transition: background .15s, color .15s; }
+  .tab-btn .close-tab:hover { background: #1A3A5C; color: #fff; }
+  .add-tab-btn { padding: .75rem .75rem; font-size: 20px; line-height: 1; color: #4A6A8A; background: none; border: none; cursor: pointer; transition: color .15s; flex-shrink: 0; }
+  .add-tab-btn:hover { color: #fff; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 100; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border-radius: var(--radius-lg); padding: 1.5rem; width: 340px; box-shadow: 0 8px 32px rgba(0,0,0,.18); }
+  .modal h3 { font-size: 15px; font-weight: 600; margin-bottom: 1rem; }
+  .modal label { font-size: 12px; font-weight: 500; color: var(--text-secondary); display: block; margin-bottom: 4px; }
+  .modal input[type="text"] { width: 100%; border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 8px 10px; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--text-primary); margin-bottom: 1rem; }
+  .modal input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+  .modal-actions { display: flex; gap: .5rem; justify-content: flex-end; }
+
+  /* MAIN */
+  .main { max-width: 920px; margin: 0 auto; padding: 1.75rem 1.5rem 4rem; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* CONTROLS BAR */
+  .controls-bar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+  .controls-bar label { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+  .controls-bar select, .controls-bar input[type="text"] { border: 1px solid var(--border-strong); border-radius: var(--radius); padding: 6px 10px; font-size: 13px; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-primary); }
+  .ctrl-group { display: flex; align-items: center; gap: .5rem; }
+  .divider-v { width: 1px; height: 24px; background: var(--border); }
+
+  /* SCORE SUMMARY */
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+  .score-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: .875rem 1rem; text-align: center; box-shadow: var(--shadow); }
+  .score-card .sc-label { font-size: 11px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; line-height: 1.3; }
+  .score-card .sc-val { font-size: 22px; font-weight: 600; color: var(--text-primary); line-height: 1; }
+  .score-card.total-card { border-color: var(--accent); background: var(--accent-light); }
+  .score-card.total-card .sc-val { color: var(--accent); }
+  .nivel-badge { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 500; line-height: 1.8; }
+  .nA { background: var(--green-light); color: var(--green-text); }
+  .nB { background: var(--accent-light); color: var(--accent-text); }
+  .nC { background: var(--amber-light); color: var(--amber-text); }
+  .nD { background: var(--red-light); color: var(--red-text); }
+
+  /* SECTIONS */
+  .section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 1rem; box-shadow: var(--shadow); overflow: hidden; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; padding: .875rem 1.25rem; cursor: pointer; user-select: none; gap: .5rem; }
+  .section-header:hover { background: var(--bg); }
+  .sec-left { display: flex; align-items: center; gap: .625rem; }
+  .sec-num { width: 24px; height: 24px; border-radius: 50%; background: var(--accent-light); color: var(--accent-text); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .sec-title { font-size: 14px; font-weight: 500; }
+  .sec-right { display: flex; align-items: center; gap: .75rem; }
+  .peso-chip { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 99px; background: var(--surface-alt); color: var(--text-secondary); }
+  .sec-score-text { font-size: 13px; color: var(--text-muted); min-width: 80px; text-align: right; }
+  .chevron { font-size: 18px; color: var(--text-muted); transition: transform .2s; flex-shrink: 0; }
+  .section-header.open .chevron { transform: rotate(180deg); }
+  .criteria-body { display: none; }
+  .criteria-body.open { display: block; }
+
+  /* TABLE */
+  table.crit-table { width: 100%; border-collapse: collapse; }
+  .crit-table thead th { font-size: 11px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; padding: .5rem 1rem; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--bg); text-align: left; }
+  .crit-table thead th.center { text-align: center; width: 68px; }
+  .crit-table tbody tr { border-bottom: 1px solid var(--border); }
+  .crit-table tbody tr:last-child { border-bottom: none; }
+  .crit-table td { padding: .75rem 1rem; vertical-align: top; }
+  .crit-table td.center { text-align: center; }
+  .crit-name { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+  .crit-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+  .radio-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .radio-wrap input[type="radio"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
+  .radio-wrap .rlabel { font-size: 10px; color: var(--text-muted); font-weight: 500; }
+  .nota-ta { width: 100%; min-width: 100px; border: 1px solid var(--border); border-radius: var(--radius); padding: 5px 7px; font-size: 12px; font-family: 'Inter', sans-serif; color: var(--text-primary); background: var(--bg); resize: vertical; min-height: 52px; }
+  .nota-ta:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+  .nota-ta::placeholder { color: var(--text-muted); }
+
+  /* ACTIONS */
+  .actions-bar { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1.5rem; align-items: center; }
+  .btn { padding: 8px 16px; border-radius: var(--radius); font-size: 13px; font-family: 'Inter', sans-serif; font-weight: 500; cursor: pointer; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text-primary); transition: background .15s; }
+  .btn:hover { background: var(--bg); }
+  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn.primary:hover { opacity: .88; }
+
+  /* RESULTADO */
+  .resultado-panel { display: none; margin-top: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow); }
+  .resultado-panel h3 { font-size: 15px; font-weight: 600; margin-bottom: 1rem; }
+  .result-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .result-row:last-child { border-bottom: none; }
+  .result-row .rlabel { color: var(--text-secondary); }
+  .result-row .rval { font-weight: 500; }
+
+  @media print {
+    .tabs-bar, .controls-bar, .actions-bar, .btn, .modal-overlay { display: none !important; }
+    .tab-panel { display: block !important; }
+    .criteria-body { display: block !important; }
+    body { background: white; }
+  }
+  @media (max-width: 600px) {
+    .main { padding: 1rem; }
+    .page-header { flex-direction: column; align-items: flex-start; }
+    .crit-table thead th.center { width: 44px; }
+    .crit-table td { padding: .5rem .625rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="brand">
+    <div class="brand-mark">AE</div>
+    <div>
+      <div class="brand-name">AEME Asesores en Mercadotecnia</div>
+      <div class="brand-sub">Rúbrica de evaluación — ejecutivos de proyectos · aeme!VEINTE</div>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs-bar" id="tabs-bar">
+  <button class="add-tab-btn" onclick="openModal()" title="Agregar ejecutivo">+</button>
+</nav>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h3>Agregar ejecutivo de proyectos</h3>
+    <label for="modal-nombre">Nombre completo</label>
+    <input type="text" id="modal-nombre" placeholder="Ej. Laura Martínez">
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn primary" onclick="agregarEjecutivo()">Agregar</button>
+    </div>
+  </div>
+</div>
+
+<div id="panels-container"></div>
+
+<script>
+const SECTIONS = [
+  {
+    id:'tiempos', label:'Cumplimiento de tiempos y entregables', peso:30, num:1,
+    criteria:[
+      {id:'p01', name:'Apego al cronograma del proyecto', desc:'El proyecto se ejecuta dentro de los tiempos pactados con el cliente en la Propuesta de Trabajo (diseño, campo, análisis, entrega).'},
+      {id:'p02', name:'Entrega del informe final a tiempo', desc:'El informe final se entrega en la fecha comprometida con el cliente, sin extensiones no acordadas.'},
+      {id:'p03', name:'Comunicación anticipada de retrasos', desc:'Cuando hay un riesgo de retraso, lo comunica al DG y al cliente con al menos 48 hrs de anticipación y propone solución.'},
+      {id:'p04', name:'Cumplimiento de hitos intermedios', desc:'Los hitos clave (cierre de instrumentos, fin de campo, análisis preliminar) se alcanzan en las fechas internas comprometidas.'},
+    ]
+  },
+  {
+    id:'calidad', label:'Calidad metodológica y del informe', peso:30, num:2,
+    criteria:[
+      {id:'p05', name:'Rigor en diseño del instrumento', desc:'El cuestionario, guía de tópicos o ficha de observación está bien estructurado, libre de sesgos evidentes y alineado al objetivo del estudio.'},
+      {id:'p06', name:'Calidad del análisis', desc:'El análisis va más allá de frecuencias: cruza variables relevantes, identifica patrones, usa estadística adecuada a la escala de medición.'},
+      {id:'p07', name:'Calidad del informe final', desc:'El informe tiene estructura clara (contexto, metodología, hallazgos, conclusiones, recomendaciones), redacción limpia y visualizaciones correctas.'},
+      {id:'p08', name:'Alineación hallazgos-objetivo', desc:'Los hallazgos responden directamente al objetivo del estudio planteado en la PT; no hay desvíos temáticos sin justificación.'},
+      {id:'p09', name:'Recomendaciones accionables', desc:'El informe incluye recomendaciones concretas y aplicables para el cliente, no solo descripción de datos.'},
+    ]
+  },
+  {
+    id:'cliente', label:'Manejo del cliente durante el proyecto', peso:20, num:3,
+    criteria:[
+      {id:'p10', name:'Comunicación proactiva de avances', desc:'Actualiza al cliente en los momentos clave del proyecto (inicio de campo, avance de campo, análisis) sin que el cliente tenga que preguntar.'},
+      {id:'p11', name:'Gestión de expectativas', desc:'Aclara desde el inicio los alcances, limitaciones metodológicas y tiempos; no promete más de lo que el estudio puede entregar.'},
+      {id:'p12', name:'Manejo de solicitudes de cambio', desc:'Cuando el cliente pide modificaciones fuera del alcance original, lo documenta, evalúa el impacto y lo escala al DG antes de comprometerse.'},
+      {id:'p13', name:'Satisfacción percibida del cliente', desc:'El cliente expresa conformidad con el proceso y los entregables, ya sea verbalmente o mediante retroalimentación directa.'},
+    ]
+  },
+  {
+    id:'administracion', label:'Administración y costos del proyecto', peso:10, num:4,
+    criteria:[
+      {id:'p14', name:'Control del presupuesto operativo', desc:'Los gastos de campo (encuestadores, viáticos, renta de espacio, incentivos) no exceden el presupuesto interno asignado al proyecto.'},
+      {id:'p15', name:'Solicitud oportuna de recursos', desc:'Solicita viáticos, materiales y pagos a campo con la anticipación suficiente; no genera urgencias de último momento al área administrativa.'},
+      {id:'p16', name:'Cierre administrativo del proyecto', desc:'Al terminar el proyecto entrega comprobantes de gasto, bases de datos limpias y archivos del estudio dentro de los 5 días hábiles posteriores a la entrega del informe.'},
+    ]
+  },
+  {
+    id:'documentacion', label:'Gestión interna y documentación', peso:10, num:5,
+    criteria:[
+      {id:'p17', name:'Expediente del proyecto completo', desc:'El proyecto queda documentado con: briefing, instrumento final, base de datos limpia, informe y evidencias de campo (fotos, audios, actas).'},
+      {id:'p18', name:'Orden en carpetas y nomenclatura', desc:'Los archivos del proyecto siguen la nomenclatura y estructura de carpetas AEME; no hay archivos huérfanos o mal nombrados.'},
+      {id:'p19', name:'Lecciones aprendidas', desc:'Al cerrar el proyecto documenta al menos 1 aprendizaje metodológico u operativo relevante para futuros estudios similares.'},
+    ]
+  }
+];
+
+const SCORE_LABELS = ['','1 — Deficiente','2 — En desarrollo','3 — Cumple','4 — Sobresaliente'];
+
+let ejecutivos = [];
+let activeId = null;
+let stateMap = {};
+
+function uid(){ return 'e'+ Date.now() + Math.floor(Math.random()*1000); }
+
+function openModal(){
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('modal-nombre').focus(), 50);
+}
+function closeModal(){
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.getElementById('modal-nombre').value='';
+}
+document.getElementById('modal-overlay').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
+document.getElementById('modal-nombre').addEventListener('keydown', function(e){
+  if(e.key==='Enter') agregarEjecutivo();
+  if(e.key==='Escape') closeModal();
+});
+
+function agregarEjecutivo(){
+  const nombre = document.getElementById('modal-nombre').value.trim();
+  if(!nombre) return;
+  const id = uid();
+  ejecutivos.push({id, nombre});
+  stateMap[id] = {scores:{}, notas:{}, periodo:'', mes:''};
+  closeModal();
+  renderTabs();
+  renderPanel(id);
+  switchTab(id);
+}
+
+function eliminarEjecutivo(id, e){
+  e.stopPropagation();
+  if(ejecutivos.length===1){ alert('Debe haber al menos un ejecutivo.'); return; }
+  if(!confirm('¿Eliminar esta evaluación?')) return;
+  ejecutivos = ejecutivos.filter(x=>x.id!==id);
+  delete stateMap[id];
+  document.getElementById('panel-'+id).remove();
+  renderTabs();
+  if(activeId===id){ activeId=null; switchTab(ejecutivos[0].id); }
+}
+
+function switchTab(id){
+  activeId = id;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.id===id));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+id));
+}
+
+function renderTabs(){
+  const bar = document.getElementById('tabs-bar');
+  bar.querySelectorAll('.tab-btn').forEach(b=>b.remove());
+  const addBtn = bar.querySelector('.add-tab-btn');
+  ejecutivos.forEach(ej=>{
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (ej.id===activeId?' active':'');
+    btn.dataset.id = ej.id;
+    btn.innerHTML = `<span class="tab-name">${ej.nombre}</span><span class="close-tab" title="Eliminar">×</span>`;
+    btn.querySelector('.close-tab').addEventListener('click', (e)=>eliminarEjecutivo(ej.id, e));
+    btn.addEventListener('click', ()=>switchTab(ej.id));
+    bar.insertBefore(btn, addBtn);
+  });
+}
+
+function calcSection(id, sec){
+  const s = stateMap[id].scores;
+  let sum=0, count=0;
+  sec.criteria.forEach(c=>{ if(s[c.id]){ sum+=s[c.id]; count++; } });
+  return count===0 ? null : Math.round((sum/count)*10)/10;
+}
+
+function calcTotal(id){
+  let w=0, tp=0;
+  SECTIONS.forEach(sec=>{ const s=calcSection(id,sec); if(s!==null){ w+=s*sec.peso; tp+=sec.peso; } });
+  return tp===0 ? null : Math.round((w/tp)*10)/10;
+}
+
+function getNivel(t){
+  if(t===null) return {label:'—', cls:''};
+  if(t>=3.5) return {label:'A — Excelente', cls:'nA'};
+  if(t>=2.7) return {label:'B — Satisfactorio', cls:'nB'};
+  if(t>=1.8) return {label:'C — En desarrollo', cls:'nC'};
+  return {label:'D — Crítico', cls:'nD'};
+}
+
+function updateScores(id){
+  const total = calcTotal(id);
+  SECTIONS.forEach((sec,i)=>{
+    const s = calcSection(id, sec);
+    const el = document.querySelector('#panel-'+id+' .sc-val[data-sec="'+i+'"]');
+    if(el) el.textContent = s!==null ? s : '—';
+    const ss = document.querySelector('#panel-'+id+' .sec-score-text[data-sec="'+sec.id+'"]');
+    if(ss) ss.textContent = s!==null ? s+'/4' : 'sin calificar';
+  });
+  const tel = document.querySelector('#panel-'+id+' .sc-val[data-total]');
+  if(tel) tel.textContent = total!==null ? total : '—';
+  const niv = getNivel(total);
+  const nel = document.querySelector('#panel-'+id+' .sc-val[data-nivel]');
+  if(nel){
+    if(niv.cls) nel.innerHTML='<span class="nivel-badge '+niv.cls+'">'+niv.label+'</span>';
+    else nel.textContent='—';
+  }
+}
+
+function toggleSection(id, secId){
+  const body = document.getElementById('body-'+id+'-'+secId);
+  const hdr = document.querySelector('#panel-'+id+' .section-header[data-sec="'+secId+'"]');
+  const open = body.classList.toggle('open');
+  hdr.classList.toggle('open', open);
+}
+
+function generarResumen(id){
+  const t = calcTotal(id);
+  if(t===null){ alert('Califica al menos un criterio antes de generar el resumen.'); return; }
+  const niv = getNivel(t);
+  const ej = ejecutivos.find(e=>e.id===id);
+  let html='';
+  SECTIONS.forEach(sec=>{
+    const s = calcSection(id, sec);
+    html+=`<div class="result-row"><span class="rlabel">${sec.num}. ${sec.label}</span><span class="rval">${s!==null?s+'/4':'N/E'}</span></div>`;
+  });
+  html+=`<div class="result-row" style="margin-top:.5rem;padding-top:.75rem;border-top:2px solid #E0DDD6;font-size:15px">
+    <span class="rlabel"><strong>Puntaje ponderado total</strong></span>
+    <span class="rval"><strong>${t}/4</strong> &nbsp; <span class="nivel-badge ${niv.cls}">${niv.label}</span></span>
+  </div>`;
+  const notas = stateMap[id].notas;
+  let hayNotas=false;
+  SECTIONS.forEach(sec=>sec.criteria.forEach(c=>{ if(notas[c.id]&&notas[c.id].trim()) hayNotas=true; }));
+  if(hayNotas){
+    html+='<h4 style="margin-top:1.25rem;margin-bottom:.75rem;font-size:13px;color:var(--text-secondary);font-weight:500;text-transform:uppercase;letter-spacing:.05em">Observaciones</h4>';
+    SECTIONS.forEach(sec=>sec.criteria.forEach(c=>{
+      if(notas[c.id]&&notas[c.id].trim())
+        html+=`<div style="margin-bottom:.5rem;font-size:13px"><span style="font-weight:500">${c.name}:</span> <span style="color:var(--text-secondary)">${notas[c.id].trim()}</span></div>`;
+    }));
+  }
+  const panel = document.getElementById('res-'+id);
+  panel.querySelector('.resultado-body').innerHTML=html;
+  panel.style.display='block';
+  panel.scrollIntoView({behavior:'smooth'});
+}
+
+function resetPanel(id){
+  if(!confirm('¿Limpiar toda la evaluación de este ejecutivo?')) return;
+  stateMap[id]={scores:{}, notas:{}, periodo:'', mes:''};
+  document.querySelectorAll('#panel-'+id+' input[type="radio"]').forEach(r=>r.checked=false);
+  document.querySelectorAll('#panel-'+id+' .nota-ta').forEach(t=>t.value='');
+  document.getElementById('res-'+id).style.display='none';
+  updateScores(id);
+}
+
+function renderPanel(id){
+  const ej = ejecutivos.find(e=>e.id===id);
+  const container = document.getElementById('panels-container');
+  const main = document.createElement('div');
+  main.className = 'main tab-panel';
+  main.id = 'panel-'+id;
+
+  let html = `<div class="controls-bar">
+    <div class="ctrl-group"><label>Ejecutivo</label><strong style="font-size:13px">${ej.nombre}</strong></div>
+    <div class="divider-v"></div>
+    <div class="ctrl-group">
+      <label>Período</label>
+      <select onchange="stateMap['${id}'].periodo=this.value">
+        <option value="">Selecciona</option>
+        <option>Mensual</option><option>Trimestral</option><option>Semestral</option>
+      </select>
+    </div>
+    <div class="divider-v"></div>
+    <div class="ctrl-group">
+      <label>Mes / Trimestre</label>
+      <input type="text" placeholder="Ej. Junio 2026" style="width:130px" oninput="stateMap['${id}'].mes=this.value">
+    </div>
+  </div>`;
+
+  html += `<div class="summary-grid">`;
+  SECTIONS.forEach((sec,i)=>{
+    const shortLabels = ['Tiempos','Calidad','Cliente','Costos','Documentación'];
+    html+=`<div class="score-card"><div class="sc-label">${shortLabels[i]}</div><div class="sc-val" data-sec="${i}">—</div></div>`;
+  });
+  html+=`<div class="score-card total-card"><div class="sc-label">Total</div><div class="sc-val" data-total>—</div></div>`;
+  html+=`<div class="score-card"><div class="sc-label">Nivel</div><div class="sc-val" data-nivel style="font-size:14px;padding-top:4px">—</div></div>`;
+  html+=`</div>`;
+
+  html += `<div class="sections-inner" id="si-${id}"></div>`;
+  html += `<div class="actions-bar">
+    <button class="btn primary" onclick="generarResumen('${id}')">Ver resumen</button>
+    <button class="btn" onclick="window.print()">Imprimir / PDF</button>
+    <button class="btn" onclick="resetPanel('${id}')">Limpiar</button>
+  </div>`;
+  html += `<div class="resultado-panel" id="res-${id}"><h3>Resumen — ${ej.nombre}</h3><div class="resultado-body"></div></div>`;
+
+  main.innerHTML = html;
+  container.appendChild(main);
+
+  const si = document.getElementById('si-'+id);
+  SECTIONS.forEach((sec, sidx)=>{
+    const div = document.createElement('div');
+    div.className = 'section';
+    const hdr = document.createElement('div');
+    hdr.className = 'section-header';
+    hdr.setAttribute('data-sec', sec.id);
+    hdr.innerHTML = `
+      <div class="sec-left">
+        <div class="sec-num">${sec.num}</div>
+        <div class="sec-title">${sec.label}</div>
+        <span class="peso-chip">${sec.peso}%</span>
+      </div>
+      <div class="sec-right">
+        <span class="sec-score-text" data-sec="${sec.id}">sin calificar</span>
+        <span class="chevron">&#8964;</span>
+      </div>`;
+    hdr.addEventListener('click', ()=>toggleSection(id, sec.id));
+    div.appendChild(hdr);
+
+    const body = document.createElement('div');
+    body.className = 'criteria-body';
+    body.id = 'body-'+id+'-'+sec.id;
+
+    const table = document.createElement('table');
+    table.className = 'crit-table';
+    table.innerHTML = `<thead><tr>
+      <th>Criterio</th>
+      <th class="center">1</th><th class="center">2</th><th class="center">3</th><th class="center">4</th>
+      <th style="min-width:140px">Observación</th>
+    </tr></thead>`;
+
+    const tbody = document.createElement('tbody');
+    sec.criteria.forEach(c=>{
+      const tr = document.createElement('tr');
+      const radios = [1,2,3,4].map(v=>`
+        <td class="center">
+          <div class="radio-wrap">
+            <input type="radio" name="${id}-${c.id}" value="${v}" title="${SCORE_LABELS[v]}">
+            <span class="rlabel">${v}</span>
+          </div>
+        </td>`).join('');
+      tr.innerHTML = `
+        <td style="min-width:220px">
+          <div class="crit-name">${c.name}</div>
+          <div class="crit-desc">${c.desc}</div>
+        </td>
+        ${radios}
+        <td><textarea class="nota-ta" placeholder="Observación…" rows="2"></textarea></td>`;
+      tr.querySelectorAll('input[type="radio"]').forEach(r=>{
+        r.addEventListener('change', ()=>{ stateMap[id].scores[c.id]=parseInt(r.value); updateScores(id); });
+      });
+      tr.querySelector('textarea').addEventListener('input', function(){ stateMap[id].notas[c.id]=this.value; });
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    body.appendChild(table);
+    div.appendChild(body);
+    si.appendChild(div);
+    if(sidx===0) toggleSection(id, sec.id);
+  });
+}
+
+function init(){
+  const nombres = ['Daniela Aguirre','Paola De León','Diana Galindo','Ramiro Navarro'];
+  nombres.forEach(nombre=>{
+    const id = uid();
+    ejecutivos.push({id, nombre});
+    stateMap[id] = {scores:{}, notas:{}, periodo:'', mes:''};
+    renderPanel(id);
+  });
+  renderTabs();
+  switchTab(ejecutivos[0].id);
+}
+
+init();
+</script>
+</body>
+</html>
