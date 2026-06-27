@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rúbrica Comercial — AEME Asesores</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F6F3;
+    --surface: #FFFFFF;
+    --surface-alt: #F0EEE9;
+    --border: #E0DDD6;
+    --border-strong: #C8C4BC;
+    --text-primary: #1A1917;
+    --text-secondary: #6B6862;
+    --text-muted: #A09C96;
+    --accent: #C04A1A;
+    --accent-light: #FBF0EB;
+    --accent-text: #8B2E09;
+    --blue: #1A56A0;
+    --blue-light: #EBF2FB;
+    --blue-text: #0F3870;
+    --green: #1E6B3A;
+    --green-light: #EAF5EE;
+    --green-text: #134726;
+    --amber: #8B5E00;
+    --amber-light: #FEF6E4;
+    --amber-text: #5C3D00;
+    --red: #A82020;
+    --red-light: #FDECEC;
+    --red-text: #721515;
+    --radius: 6px;
+    --radius-lg: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .page-header {
+    background: var(--text-primary);
+    color: #fff;
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .page-header .brand { display: flex; align-items: center; gap: .75rem; }
+  .brand-mark {
+    width: 36px; height: 36px;
+    background: var(--accent);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600; color: #fff; letter-spacing: .05em;
+  }
+  .brand-name { font-size: 15px; font-weight: 500; }
+  .brand-sub { font-size: 12px; color: #9E9B96; margin-top: 1px; }
+  .header-meta { font-size: 12px; color: #9E9B96; text-align: right; }
+  .header-meta strong { color: #fff; display: block; font-size: 13px; }
+
+  /* MAIN */
+  .main { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  /* CONTROLS BAR */
+  .controls-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex; flex-wrap: wrap; gap: .75rem; align-items: center;
+  }
+  .controls-bar label { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+  .controls-bar select, .controls-bar input[type="text"] {
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    padding: 6px 10px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+  }
+  .controls-bar select:focus, .controls-bar input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .ctrl-group { display: flex; align-items: center; gap: .5rem; }
+  .divider-v { width: 1px; height: 24px; background: var(--border); }
+
+  /* SCORE SUMMARY */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .score-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: .875rem 1rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+  }
+  .score-card .sc-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 6px;
+  }
+  .score-card .sc-val {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1;
+  }
+  .score-card.total-card {
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+  .score-card.total-card .sc-val { color: var(--accent); }
+  .nivel-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.8;
+  }
+  .nA { background: var(--green-light); color: var(--green-text); }
+  .nB { background: var(--blue-light); color: var(--blue-text); }
+  .nC { background: var(--amber-light); color: var(--amber-text); }
+  .nD { background: var(--red-light); color: var(--red-text); }
+
+  /* SECTIONS */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .875rem 1.25rem;
+    cursor: pointer;
+    user-select: none;
+    gap: .5rem;
+  }
+  .section-header:hover { background: var(--bg); }
+  .sec-left { display: flex; align-items: center; gap: .625rem; }
+  .sec-num {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--accent-light);
+    color: var(--accent-text);
+    font-size: 11px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .sec-title { font-size: 14px; font-weight: 500; }
+  .sec-right { display: flex; align-items: center; gap: .75rem; }
+  .peso-chip {
+    font-size: 11px; font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 99px;
+    background: var(--surface-alt);
+    color: var(--text-secondary);
+  }
+  .sec-score-text { font-size: 13px; color: var(--text-muted); min-width: 80px; text-align: right; }
+  .chevron {
+    font-size: 18px; color: var(--text-muted);
+    transition: transform .2s;
+    flex-shrink: 0;
+  }
+  .section-header.open .chevron { transform: rotate(180deg); }
+
+  /* TABLE */
+  .criteria-body { display: none; }
+  .criteria-body.open { display: block; }
+  table.crit-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .crit-table thead th {
+    font-size: 11px; font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    padding: .5rem 1rem;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    text-align: left;
+  }
+  .crit-table thead th.center { text-align: center; width: 68px; }
+  .crit-table tbody tr { border-bottom: 1px solid var(--border); }
+  .crit-table tbody tr:last-child { border-bottom: none; }
+  .crit-table td { padding: .75rem 1rem; vertical-align: top; }
+  .crit-table td.center { text-align: center; }
+  .crit-name { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+  .crit-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+  /* RADIO BUTTONS */
+  .radio-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .radio-wrap input[type="radio"] {
+    width: 16px; height: 16px;
+    cursor: pointer;
+    accent-color: var(--accent);
+  }
+  .radio-wrap .rlabel {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .radio-wrap input:checked + .rlabel {
+    color: var(--accent-text);
+  }
+
+  /* TEXTAREA NOTA */
+  .nota-ta {
+    width: 100%; min-width: 100px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 5px 7px;
+    font-size: 12px;
+    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
+    background: var(--bg);
+    resize: vertical;
+    min-height: 52px;
+  }
+  .nota-ta:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+  .nota-ta::placeholder { color: var(--text-muted); }
+
+  /* ACTIONS */
+  .actions-bar {
+    display: flex; gap: .75rem; flex-wrap: wrap;
+    margin-top: 1.5rem; align-items: center;
+  }
+  .btn {
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text-primary);
+    transition: background .15s;
+  }
+  .btn:hover { background: var(--bg); }
+  .btn.primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .btn.primary:hover { opacity: .88; }
+
+  /* RESULTADO PANEL */
+  .resultado-panel {
+    display: none;
+    margin-top: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow);
+  }
+  .resultado-panel h3 { font-size: 15px; font-weight: 600; margin-bottom: 1rem; }
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: .75rem;
+    margin-bottom: 1rem;
+  }
+  .result-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .result-row:last-child { border-bottom: none; }
+  .result-row .rlabel { color: var(--text-secondary); }
+  .result-row .rval { font-weight: 500; }
+
+  /* PRINT */
+  @media print {
+    .controls-bar, .actions-bar, .btn { display: none !important; }
+    .criteria-body { display: block !important; }
+    .section-header .chevron { display: none; }
+    body { background: white; }
+    .page-header { background: #1A1917 !important; -webkit-print-color-adjust: exact; }
+  }
+
+  @media (max-width: 600px) {
+    .main { padding: 1rem; }
+    .page-header { flex-direction: column; align-items: flex-start; }
+    .crit-table thead th.center { width: 44px; }
+    .crit-table td { padding: .5rem .625rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="brand">
+    <div class="brand-mark">AE</div>
+    <div>
+      <div class="brand-name">AEME Asesores en Mercadotecnia</div>
+      <div class="brand-sub">Rúbrica de evaluación comercial · aeme!VEINTE</div>
+    </div>
+  </div>
+  <div class="header-meta">
+    <strong id="hdr-ejecutivo">Ejecutivo: —</strong>
+    <span id="hdr-periodo">Período: —</span>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- CONTROLS -->
+  <div class="controls-bar">
+    <div class="ctrl-group">
+      <label for="inp-ejecutivo">Ejecutivo</label>
+      <input type="text" id="inp-ejecutivo" placeholder="Nombre" value="Ramiro Navarro" style="width:160px" oninput="document.getElementById('hdr-ejecutivo').textContent='Ejecutivo: '+this.value">
+    </div>
+    <div class="divider-v"></div>
+    <div class="ctrl-group">
+      <label for="sel-periodo">Período</label>
+      <select id="sel-periodo" onchange="setPeriodo(this.value)">
+        <option value="">Selecciona</option>
+        <option>Mensual</option>
+        <option>Trimestral</option>
+        <option>Semestral</option>
+      </select>
+    </div>
+    <div class="divider-v"></div>
+    <div class="ctrl-group">
+      <label for="sel-mes">Mes / Trimestre</label>
+      <input type="text" id="sel-mes" placeholder="Ej. Junio 2026" style="width:130px" oninput="document.getElementById('hdr-periodo').textContent='Período: '+this.value">
+    </div>
+  </div>
+
+  <!-- SCORE SUMMARY -->
+  <div class="summary-grid">
+    <div class="score-card"><div class="sc-label">Actividad</div><div class="sc-val" id="s0">—</div></div>
+    <div class="score-card"><div class="sc-label">Propuestas</div><div class="sc-val" id="s1">—</div></div>
+    <div class="score-card"><div class="sc-label">Cierre</div><div class="sc-val" id="s2">—</div></div>
+    <div class="score-card"><div class="sc-label">Conocimiento</div><div class="sc-val" id="s3">—</div></div>
+    <div class="score-card"><div class="sc-label">Cobranza</div><div class="sc-val" id="s4">—</div></div>
+    <div class="score-card"><div class="sc-label">CRM / Higiene</div><div class="sc-val" id="s5">—</div></div>
+    <div class="score-card total-card"><div class="sc-label">Puntaje total</div><div class="sc-val" id="total">—</div></div>
+    <div class="score-card"><div class="sc-label">Nivel</div><div class="sc-val" id="nivel" style="font-size:14px;padding-top:4px">—</div></div>
+  </div>
+
+  <!-- SECTIONS -->
+  <div id="sections-container"></div>
+
+  <!-- ACTIONS -->
+  <div class="actions-bar">
+    <button class="btn primary" onclick="generarResumen()">Ver resumen de evaluación</button>
+    <button class="btn" onclick="window.print()">Imprimir / Exportar PDF</button>
+    <button class="btn" onclick="resetAll()">Limpiar</button>
+  </div>
+
+  <!-- RESULTADO -->
+  <div class="resultado-panel" id="resultado-panel">
+    <h3>Resumen de evaluación</h3>
+    <div id="resultado-body"></div>
+  </div>
+
+</main>
+
+<script>
+const SECTIONS = [
+  {
+    id:'actividad', label:'Actividad y prospección', peso:20, num:1,
+    criteria:[
+      {id:'c01', name:'Volumen de prospectos nuevos', desc:'Nº de prospectos nuevos ingresados al pipeline en el período vs. meta acordada.'},
+      {id:'c02', name:'Calidad del prospecto', desc:'Proporción con perfil idóneo: empresa con presupuesto, decisor identificado, necesidad alineada al portafolio AEME.'},
+      {id:'c03', name:'Seguimiento activo', desc:'Registra actividades en HubSpot (llamadas, correos, WhatsApp) dentro de 72 hrs del último contacto.'},
+      {id:'c04', name:'Diversificación de canales', desc:'Usa al menos 2 canales: red de contactos, eventos COPARMEX/CCE, referidos, LinkedIn, llamada en frío.'},
+    ]
+  },
+  {
+    id:'propuestas', label:'Generación de propuestas', peso:20, num:2,
+    criteria:[
+      {id:'c05', name:'Velocidad propuesta-diagnóstico', desc:'Entrega la Propuesta de Trabajo dentro de 5 días hábiles tras el primer diagnóstico con el cliente.'},
+      {id:'c06', name:'Cumplimiento de formato PT', desc:'La PT sigue la estructura de 14 slides, nomenclatura PT_[Cliente]_[Mes][Año]_v[n].pptx y términos 60/40.'},
+      {id:'c07', name:'Adecuación metodológica', desc:'Recomienda la metodología correcta (Geomarketing, Mystery Shopper, Focus Groups, SIS, Place It…) según la necesidad.'},
+      {id:'c08', name:'Monto promedio de propuestas', desc:'El valor promedio de PTs emitidas está dentro del rango estándar AEME (~$94,100 + IVA base).'},
+    ]
+  },
+  {
+    id:'cierre', label:'Cierre y conversión', peso:25, num:3,
+    criteria:[
+      {id:'c09', name:'Tasa de conversión PT → deal', desc:'% de PTs emitidas que se convierten en proyecto autorizado vs. benchmark del equipo.'},
+      {id:'c10', name:'Manejo de objeciones', desc:'Responde objeciones de precio, plazo o metodología con argumentos basados en datos AEME, sin descuentos no autorizados.'},
+      {id:'c11', name:'Velocidad de cierre', desc:'Tiempo promedio entre entrega de PT y firma / anticipo dentro de los parámetros del ciclo de venta AEME.'},
+      {id:'c12', name:'Cumplimiento de meta de ingresos', desc:'Ingresos cerrados en el período vs. meta mensual individual acordada ($333,000 MXN referencial Pulso).'},
+      {id:'c13', name:'Venta de Pulso Social', desc:'Incluye prospectos y cierres específicos de servicios Pulso Social, no solo proyectos one-shot.'},
+    ]
+  },
+  {
+    id:'conocimiento', label:'Conocimiento del portafolio', peso:15, num:4,
+    criteria:[
+      {id:'c14', name:'Dominio de los 6 servicios', desc:'Puede explicar con claridad SIS, Top of Mind, Place It, Comercial Risk, Emprendedores y Asesoría Política sin apoyos.'},
+      {id:'c15', name:'Diferenciación AEME vs. competencia', desc:'Articula por qué AEME (20 años, exactitud encuestadora, cámaras Gesell, cobertura regional) es la opción superior.'},
+      {id:'c16', name:'Diagnóstico autónomo', desc:'En un caso real, diagnostica y propone la solución metodológica adecuada sin necesidad de escalar al DG.'},
+    ]
+  },
+  {
+    id:'cobranza', label:'Cobranza y seguimiento post-venta', peso:10, num:5,
+    criteria:[
+      {id:'c17', name:'Gestión del anticipo 60%', desc:'Confirma el pago del anticipo antes del inicio de operación del estudio; no inicia sin él.'},
+      {id:'c18', name:'Seguimiento del finiquito 40%', desc:'Gestiona activamente el cobro del saldo al entregar el informe final, dentro de los plazos acordados.'},
+      {id:'c19', name:'Relación post-proyecto', desc:'Realiza al menos 1 contacto de seguimiento con el cliente 30 días post-entrega para identificar recompra.'},
+    ]
+  },
+  {
+    id:'crm', label:'Higiene de CRM y reporte', peso:10, num:6,
+    criteria:[
+      {id:'c20', name:'Pipeline actualizado en HubSpot', desc:'Todos los deals tienen etapa, monto y fecha de cierre estimada actualizados; sin deals fantasma > 30 días sin actividad.'},
+      {id:'c21', name:'Uso correcto de etapas', desc:'Mueve los deals a la etapa correcta: Prospecto → Diagnóstico → Propuesta enviada → Negociación → Cerrado ganado/perdido.'},
+      {id:'c22', name:'Reporte semanal', desc:'Entrega reporte semanal de actividad (prospectos, PTs, seguimientos, cierres) puntualmente cada lunes.'},
+    ]
+  }
+];
+
+const SCORE_LABELS = ['','1 — Deficiente','2 — En desarrollo','3 — Cumple','4 — Sobresaliente'];
+const scores = {};
+const notas = {};
+
+function calcSection(sec){
+  let sum=0, count=0;
+  sec.criteria.forEach(c=>{ if(scores[c.id]){ sum+=scores[c.id]; count++; } });
+  return count===0 ? null : Math.round((sum/count)*10)/10;
+}
+
+function calcTotal(){
+  let w=0, tp=0;
+  SECTIONS.forEach(sec=>{ const s=calcSection(sec); if(s!==null){ w+=s*sec.peso; tp+=sec.peso; } });
+  return tp===0 ? null : Math.round((w/tp)*10)/10;
+}
+
+function getNivel(t){
+  if(t===null) return {label:'—', cls:''};
+  if(t>=3.5) return {label:'A — Excelente', cls:'nA'};
+  if(t>=2.7) return {label:'B — Satisfactorio', cls:'nB'};
+  if(t>=1.8) return {label:'C — En desarrollo', cls:'nC'};
+  return {label:'D — Crítico', cls:'nD'};
+}
+
+function updateScores(){
+  SECTIONS.forEach((sec,i)=>{
+    const s=calcSection(sec);
+    document.getElementById('s'+i).textContent = s!==null ? s : '—';
+    const ss=document.querySelector('[data-sec="'+sec.id+'"] .sec-score-text');
+    if(ss) ss.textContent = s!==null ? s+'/4' : 'sin calificar';
+  });
+  const t=calcTotal();
+  document.getElementById('total').textContent = t!==null ? t : '—';
+  const niv=getNivel(t);
+  const nel=document.getElementById('nivel');
+  if(niv.cls){
+    nel.innerHTML='<span class="nivel-badge '+niv.cls+'">'+niv.label+'</span>';
+  } else {
+    nel.textContent='—';
+  }
+}
+
+function setPeriodo(v){
+  document.getElementById('hdr-periodo').textContent = 'Período: '+(v||'—');
+}
+
+function toggleSection(id){
+  const body=document.getElementById('body-'+id);
+  const hdr=document.querySelector('[data-sec="'+id+'"] .section-header');
+  const open=body.classList.toggle('open');
+  hdr.classList.toggle('open', open);
+}
+
+function resetAll(){
+  if(!confirm('¿Limpiar toda la evaluación?')) return;
+  Object.keys(scores).forEach(k=>delete scores[k]);
+  document.querySelectorAll('input[type="radio"]').forEach(r=>r.checked=false);
+  document.querySelectorAll('.nota-ta').forEach(t=>t.value='');
+  document.getElementById('resultado-panel').style.display='none';
+  updateScores();
+}
+
+function generarResumen(){
+  const t=calcTotal();
+  if(t===null){ alert('Califica al menos un criterio antes de generar el resumen.'); return; }
+  const niv=getNivel(t);
+  const ej=document.getElementById('inp-ejecutivo').value||'—';
+  const per=document.getElementById('sel-mes').value||document.getElementById('sel-periodo').value||'—';
+
+  let html='<div class="result-grid">';
+  SECTIONS.forEach((sec,i)=>{
+    const s=calcSection(sec);
+    html+=`<div class="result-row"><span class="rlabel">${sec.num}. ${sec.label}</span><span class="rval">${s!==null?s+'/4':'N/E'}</span></div>`;
+  });
+  html+='</div>';
+  html+=`<div class="result-row" style="margin-top:.5rem;padding-top:.75rem;border-top:2px solid #E0DDD6;font-size:15px">
+    <span class="rlabel"><strong>Puntaje ponderado total</strong></span>
+    <span class="rval"><strong>${t}/4</strong> &nbsp; <span class="nivel-badge ${niv.cls}">${niv.label}</span></span>
+  </div>`;
+
+  // Notas por sección
+  let hayNotas=false;
+  SECTIONS.forEach(sec=>{
+    sec.criteria.forEach(c=>{
+      const ta=document.getElementById('nota-'+c.id);
+      if(ta && ta.value.trim()) hayNotas=true;
+    });
+  });
+  if(hayNotas){
+    html+='<h4 style="margin-top:1.25rem;margin-bottom:.75rem;font-size:13px;color:var(--text-secondary);font-weight:500;text-transform:uppercase;letter-spacing:.05em">Observaciones registradas</h4>';
+    SECTIONS.forEach(sec=>{
+      sec.criteria.forEach(c=>{
+        const ta=document.getElementById('nota-'+c.id);
+        if(ta && ta.value.trim()){
+          html+=`<div style="margin-bottom:.5rem;font-size:13px"><span style="font-weight:500">${c.name}:</span> <span style="color:var(--text-secondary)">${ta.value.trim()}</span></div>`;
+        }
+      });
+    });
+  }
+
+  document.getElementById('resultado-body').innerHTML=html;
+  const panel=document.getElementById('resultado-panel');
+  panel.style.display='block';
+  panel.scrollIntoView({behavior:'smooth'});
+}
+
+function buildSections(){
+  const container=document.getElementById('sections-container');
+  SECTIONS.forEach(sec=>{
+    const div=document.createElement('div');
+    div.className='section';
+    div.setAttribute('data-sec', sec.id);
+
+    const hdr=document.createElement('div');
+    hdr.className='section-header';
+    hdr.innerHTML=`
+      <div class="sec-left">
+        <div class="sec-num">${sec.num}</div>
+        <div class="sec-title">${sec.label}</div>
+        <span class="peso-chip">${sec.peso}%</span>
+      </div>
+      <div class="sec-right">
+        <span class="sec-score-text">sin calificar</span>
+        <span class="chevron">&#8964;</span>
+      </div>`;
+    hdr.onclick=()=>toggleSection(sec.id);
+    div.appendChild(hdr);
+
+    const body=document.createElement('div');
+    body.className='criteria-body';
+    body.id='body-'+sec.id;
+
+    const table=document.createElement('table');
+    table.className='crit-table';
+    table.innerHTML=`<thead><tr>
+      <th>Criterio</th>
+      <th class="center">1</th>
+      <th class="center">2</th>
+      <th class="center">3</th>
+      <th class="center">4</th>
+      <th style="min-width:140px">Observación</th>
+    </tr></thead>`;
+
+    const tbody=document.createElement('tbody');
+    sec.criteria.forEach(c=>{
+      const tr=document.createElement('tr');
+      const radios=[1,2,3,4].map(v=>`
+        <td class="center">
+          <div class="radio-wrap">
+            <input type="radio" name="${c.id}" value="${v}" title="${SCORE_LABELS[v]}"
+              onchange="scores['${c.id}']=${v};updateScores()">
+            <span class="rlabel">${v}</span>
+          </div>
+        </td>`).join('');
+      tr.innerHTML=`
+        <td style="min-width:220px">
+          <div class="crit-name">${c.name}</div>
+          <div class="crit-desc">${c.desc}</div>
+        </td>
+        ${radios}
+        <td><textarea class="nota-ta" id="nota-${c.id}" placeholder="Escribe una observación…" rows="2"></textarea></td>`;
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    body.appendChild(table);
+    div.appendChild(body);
+    container.appendChild(div);
+  });
+
+  // abrir primera sección por defecto
+  toggleSection(SECTIONS[0].id);
+}
+
+buildSections();
+updateScores();
+</script>
+</body>
+</html>
