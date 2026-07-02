@@ -166,9 +166,11 @@ textarea{resize:vertical;min-height:60px;}
 
 <main>
   <!-- METAS -->
-  <div style="font-size:.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:.15em;display:flex;align-items:center;gap:.5rem;margin-bottom:.8rem;">
-    Metas Mensuales <span style="flex:1;height:1px;background:var(--border);display:block"></span>
-    <span style="color:var(--text3)">Meta por categoría: $333,000</span>
+  <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.8rem;flex-wrap:wrap;">
+    <span style="font-size:.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:.15em;">Metas Mensuales</span>
+    <div style="flex:1;height:1px;background:var(--border);"></div>
+    <input type="month" id="mesSelector" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--fm);font-size:.72rem;padding:.28rem .6rem;border-radius:4px;outline:none;cursor:pointer;" onchange="cambiaMes(this.value)">
+    <span style="font-size:.6rem;color:var(--text3)">Meta por categoría: $333,000</span>
   </div>
   <div class="metas-grid">
     <div class="meta-card op">
@@ -332,17 +334,32 @@ textarea{resize:vertical;min-height:60px;}
 const BID='apphjbZJMxb5pNtxE', TID='tbl1T4w29huXePAtD';
 // Campos reales de Airtable (verificados con schema)
 const F={
-  c:   'Cliente',
-  e:   'Estatus',
-  t:   'Tipo de proyecto',
-  ej:  'Ejecutivo responsable',
-  vt:  'Monto propuesto',
-  ant: 'Anticipo cobrado',
-  sal: 'Saldo pendiente',
-  n:   'Notas',
-  done:'Proyecto terminado',
+  c:    'Cliente',
+  e:    'Estatus',
+  t:    'Tipo de proyecto',
+  ej:   'Ejecutivo responsable',
+  vt:   'Monto propuesto',
+  ant:  'Anticipo cobrado',
+  sal:  'Saldo pendiente',
+  n:    'Notas',
+  done: 'Proyecto terminado',
+  fa:   'Fecha cobro anticipo',
+  ff:   'Fecha cobro finiquito',
+  fp:   'Fecha cobro pago parcial',
 };
 let showDone=false;
+let mesActual=new Date().toISOString().slice(0,7); // 'YYYY-MM'
+
+function ingresoDelMes(r,mes){
+  // Suma todos los ingresos que cayeron en el mes indicado
+  const f=r.fields;
+  let total=0;
+  const fa=f[F.fa]||''; const ff=f[F.ff]||''; const fp=f[F.fp]||'';
+  if(fa.startsWith(mes)) total+=(f[F.ant]||0);
+  if(ff.startsWith(mes)) total+=(f[F.sal]||0);
+  if(fp.startsWith(mes)) total+=(f[F.ant]||0); // pago parcial usa el campo anticipo como monto
+  return total;
+}
 const META = 333000;
 let recs=[], af='todos', eid=null, APIKEY='';
 
@@ -486,7 +503,7 @@ function openM(id){
   eid=id;
   document.getElementById('mtitle').textContent=id?'Editar Proyecto':'Nuevo Proyecto';
   document.getElementById('bdel').style.display=id?'block':'none';
-  ['fc','fvt','fant','fsal','feje','fnot','fa','ff','fp1','fp2','fp3'].forEach(i=>document.getElementById(i).value='');
+  ['fc','fvt','fant','fsal','feje','fnot','fa','ff','fp1'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('fdone').checked=false;
   document.getElementById('fcat').value='Proyectos Operados';
   document.getElementById('fest').value='Por cobrar';
@@ -505,11 +522,10 @@ function openM(id){
       document.getElementById('feje').value=f[F.ej]||'';
       document.getElementById('fnot').value=notas;
       document.getElementById('fdone').checked=f[F.done]||false;
-      if(dates.ant)document.getElementById('fa').value=dates.ant;
-      if(dates.fin)document.getElementById('ff').value=dates.fin;
-      if(dates.p1)document.getElementById('fp1').value=dates.p1;
-      if(dates.p2)document.getElementById('fp2').value=dates.p2;
-      if(dates.p3)document.getElementById('fp3').value=dates.p3;
+      const nfa=f[F.fa]||''; const nff=f[F.ff]||''; const nfp=f[F.fp]||'';
+      if(nfa)document.getElementById('fa').value=nfa.slice(0,10);
+      if(nff)document.getElementById('ff').value=nff.slice(0,10);
+      if(nfp)document.getElementById('fp1').value=nfp.slice(0,10);
     }
   }
   document.getElementById('mo').classList.add('open');
@@ -531,6 +547,12 @@ async function saveRec(){
     [F.n]: notasField,
     [F.done]: document.getElementById('fdone').checked,
   };
+  const fa=document.getElementById('fa').value;
+  const ff=document.getElementById('ff').value;
+  const fp1=document.getElementById('fp1').value;
+  if(fa) fields[F.fa]=fa;
+  if(ff) fields[F.ff]=ff;
+  if(fp1) fields[F.fp]=fp1;
   const vt=parseFloat(document.getElementById('fvt').value);
   const ant=parseFloat(document.getElementById('fant').value);
   const sal=parseFloat(document.getElementById('fsal').value);
@@ -562,7 +584,19 @@ async function delRec(){
 let tt;
 function toast(m,t=''){const el=document.getElementById('toast');el.textContent=m;el.className='show '+t;clearTimeout(tt);tt=setTimeout(()=>el.className='',3500);}
 
-try{const sk=localStorage.getItem('akey');if(sk){APIKEY=sk;document.getElementById('ki').value=sk;load();}}catch(e){}
+function cambiaMes(m){
+  mesActual=m;
+  const lbl=new Date(m+'-02').toLocaleString('es-MX',{month:'long',year:'numeric'});
+  document.title='AEME Cobros · '+lbl;
+  updateMetas();
+}
+
+try{
+  const sk=localStorage.getItem('akey');
+  if(sk){APIKEY=sk;document.getElementById('ki').value=sk;load();}
+  // Set month selector to current month
+  document.getElementById('mesSelector').value=mesActual;
+}catch(e){}
 </script>
 </body>
 </html>
