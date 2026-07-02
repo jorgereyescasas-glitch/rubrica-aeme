@@ -256,6 +256,7 @@ textarea{resize:vertical;min-height:60px;}
       <button class="tab tp" onclick="filt('De Pulso',this)">Pulso</button>
     </div>
     <div class="sp"></div>
+    <button id="btnDone" onclick="toggleDone()" style="background:transparent;border:1px solid var(--border);color:var(--text2);font-family:var(--fm);font-size:.68rem;padding:.32rem .85rem;cursor:pointer;border-radius:4px;text-transform:uppercase;letter-spacing:.05em;">&#128065; Ver terminados</button>
     <button id="btnAdd" onclick="openM(null)">+ Nuevo Proyecto</button>
   </div>
   <div class="grid" id="grid">
@@ -312,6 +313,10 @@ textarea{resize:vertical;min-height:60px;}
       </div>
       <div class="msect">Notas</div>
       <div class="fg"><label>Notas de Cobro</label><textarea id="fnot" placeholder="Forma de pago, testigos, parcialidades..."></textarea></div>
+      <div style="display:flex;align-items:center;gap:.6rem;background:var(--bg);border-radius:6px;padding:.6rem .8rem;border:1px solid var(--border);">
+        <input type="checkbox" id="fdone" style="width:16px;height:16px;accent-color:#e34948;cursor:pointer;flex-shrink:0;">
+        <label for="fdone" style="text-transform:none;letter-spacing:0;font-size:.8rem;color:var(--text);cursor:pointer;margin:0;">&#10003; Proyecto terminado — ocultar del tablero activo</label>
+      </div>
     </div>
     <div class="mfoot">
       <button class="bdng" id="bdel" onclick="delRec()" style="display:none">Eliminar</button>
@@ -335,7 +340,9 @@ const F={
   ant: 'Anticipo cobrado',
   sal: 'Saldo pendiente',
   n:   'Notas',
+  done:'Proyecto terminado',
 };
+let showDone=false;
 const META = 333000;
 let recs=[], af='todos', eid=null, APIKEY='';
 
@@ -432,6 +439,14 @@ function kpis(){
 }
 
 function filt(f,el){af=f;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');cards();}
+function toggleDone(){
+  showDone=!showDone;
+  const btn=document.getElementById('btnDone');
+  btn.style.color=showDone?'var(--accent)':'var(--text2)';
+  btn.style.borderColor=showDone?'var(--accent)':'var(--border)';
+  btn.textContent=showDone?'✓ Ocultando terminados':'👁 Ver terminados';
+  cards();
+}
 
 function cc(cat){if(cat==='Proyectos Operados')return 'o';if(cat==='Venta Nueva')return 'v';return 'p';}
 function ec(e){if(!e)return 'en';const l=e.toLowerCase();if(l.includes('pagado')||l.includes('cobrado')||l.includes('entregado'))return 'ep';if(l.includes('cobrar')||l.includes('pendiente'))return 'ec';if(l.includes('proceso')||l.includes('activo'))return 'ei';return 'en';}
@@ -439,8 +454,8 @@ function ecol(c){return c==='o'?'var(--op)':c==='v'?'var(--vn)':'var(--pu)';}
 
 function cards(){
   const g=document.getElementById('grid');
-  let list=recs;
-  if(af!=='todos') list=recs.filter(r=>getCat(r)===af);
+  let list=recs.filter(r=>showDone?true:!r.fields[F.done]);
+  if(af!=='todos') list=list.filter(r=>getCat(r)===af);
   if(!list.length){g.innerHTML='<div class="lstate">Sin proyectos en esta categor\u00eda.</div>';return;}
   g.innerHTML=list.map(r=>{
     const f=r.fields, cat=getCat(r), c=cc(cat);
@@ -472,6 +487,7 @@ function openM(id){
   document.getElementById('mtitle').textContent=id?'Editar Proyecto':'Nuevo Proyecto';
   document.getElementById('bdel').style.display=id?'block':'none';
   ['fc','fvt','fant','fsal','feje','fnot','fa','ff','fp1','fp2','fp3'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('fdone').checked=false;
   document.getElementById('fcat').value='Proyectos Operados';
   document.getElementById('fest').value='Por cobrar';
   document.getElementById('rid').value='';
@@ -488,6 +504,7 @@ function openM(id){
       document.getElementById('fsal').value=f[F.sal]||'';
       document.getElementById('feje').value=f[F.ej]||'';
       document.getElementById('fnot').value=notas;
+      document.getElementById('fdone').checked=f[F.done]||false;
       if(dates.ant)document.getElementById('fa').value=dates.ant;
       if(dates.fin)document.getElementById('ff').value=dates.fin;
       if(dates.p1)document.getElementById('fp1').value=dates.p1;
@@ -512,6 +529,7 @@ async function saveRec(){
     [F.e]: document.getElementById('fest').value,
     [F.ej]: document.getElementById('feje').value.trim(),
     [F.n]: notasField,
+    [F.done]: document.getElementById('fdone').checked,
   };
   const vt=parseFloat(document.getElementById('fvt').value);
   const ant=parseFloat(document.getElementById('fant').value);
