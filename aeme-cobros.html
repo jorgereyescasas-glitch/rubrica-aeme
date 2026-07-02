@@ -382,7 +382,7 @@ async function load(){
   sts('Cargando\u2026',null);
   document.getElementById('grid').innerHTML='<div class="lstate"><div class="spin"></div>Cargando proyectos\u2026</div>';
   try{
-    const r=await fetch('https://api.airtable.com/v0/'+BID+'/'+TID+'?pageSize=100',{headers:{'Authorization':'Bearer '+k}});
+    const r=await fetch('https://api.airtable.com/v0/'+BID+'/'+TID+'?pageSize=100&fields[]=fldvaV4G8wYdPMO5s&fields[]=fld5hgQy7uKd1upjd&fields[]=fld5MSTXGEjsFUDwR&fields[]=fldBYO8Kq3hKjQh7f&fields[]=fldb0xijAI2l1d3OR&fields[]=fld0wMjwdK51akhKC&fields[]=fldmoHB4UfO9k95PF&fields[]=fldNNy0Wh7kru0MGq',{headers:{'Authorization':'Bearer '+k}});
     if(!r.ok){const e=await r.json();throw new Error(e.error?.message||'Token inv\u00e1lido');}
     const d=await r.json(); recs=d.records||[];
     sts(recs.length+' registros \u00b7 '+new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}),true);
