@@ -420,17 +420,16 @@ async function load(){
 function getCat(r){return mapTipo(r.fields[F.t]||'');}
 
 function updateMetas(){
-  // Group by category
   const cats={'Proyectos Operados':{ant:0,vt:0,n:0},'Venta Nueva':{ant:0,vt:0,n:0},'De Pulso':{ant:0,vt:0,n:0}};
   recs.forEach(r=>{
     const cat=getCat(r);
     if(cats[cat]){
-      cats[cat].ant+=(r.fields[F.ant]||0);
+      cats[cat].ant+=ingresoDelMes(r,mesActual);
       cats[cat].vt+=(r.fields[F.vt]||0);
       cats[cat].n++;
     }
   });
-  const circ=2*Math.PI*30; // 188.5
+  const circ=2*Math.PI*30;
   [['op','Proyectos Operados'],['vn','Venta Nueva'],['pu','De Pulso']].forEach(([k,cat])=>{
     const d=cats[cat];
     const pct=Math.min(100,Math.round(d.ant/META*100));
