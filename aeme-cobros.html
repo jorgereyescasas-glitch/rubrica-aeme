@@ -368,8 +368,8 @@ function ingresoDelMes(r,mes){
   const fa=f['fld4cZJuLNZKpaeAy']||f['Fecha cobro anticipo']||'';
   const ff=f['fldFgZQytHg8DvD7q']||f['Fecha cobro finiquito']||'';
   const fp1=f['fldLlKoiVTEO7TLxn']||f['Fecha cobro pago parcial']||'';
-  const fp2=f['Fecha cobro pago 2']||'';
-  const fp3=f['Fecha cobro pago 3']||'';
+  const fp2=f['fldvrbzUROWrSsnJ1']||f['Fecha cobro pago 2']||'';
+  const fp3=f['fldfUAiaCo6oU8ZVW']||f['Fecha cobro pago 3']||'';
   const ant=f['Anticipo cobrado']||0;
   const sal=f['Saldo pendiente']||0;
   const m1=f['fldvsgkyomq8UM2PE']||f['Monto pago parcial 1']||0;
@@ -546,8 +546,8 @@ function openM(id){
       const nfa=f['fld4cZJuLNZKpaeAy']||f['Fecha cobro anticipo']||'';
       const nff=f['fldFgZQytHg8DvD7q']||f['Fecha cobro finiquito']||'';
       const nfp1=f['fldLlKoiVTEO7TLxn']||f['Fecha cobro pago parcial']||'';
-      const nfp2=f['Fecha cobro pago 2']||'';
-      const nfp3=f['Fecha cobro pago 3']||'';
+      const nfp2=f['fldvrbzUROWrSsnJ1']||f['Fecha cobro pago 2']||'';
+      const nfp3=f['fldfUAiaCo6oU8ZVW']||f['Fecha cobro pago 3']||'';
       if(nfa)document.getElementById('fa').value=nfa.slice(0,10);
       if(nff)document.getElementById('ff').value=nff.slice(0,10);
       if(nfp1)document.getElementById('fp1').value=nfp1.slice(0,10);
@@ -590,8 +590,8 @@ async function saveRec(){
   const mp2v=parseFloat(document.getElementById('fmp2').value);
   const mp3v=parseFloat(document.getElementById('fmp3').value);
   if(fp1v) fields['fldLlKoiVTEO7TLxn']=fp1v;
-  if(fp2v) fields['Fecha cobro pago 2']=fp2v;
-  if(fp3v) fields['Fecha cobro pago 3']=fp3v;
+  if(fp2v) fields['fldvrbzUROWrSsnJ1']=fp2v;
+  if(fp3v) fields['fldfUAiaCo6oU8ZVW']=fp3v;
   if(!isNaN(mp1v)&&mp1v>0) fields['fldvsgkyomq8UM2PE']=mp1v;
   if(!isNaN(mp2v)&&mp2v>0) fields['fld8AnUXdqH8umlbT']=mp2v;
   if(!isNaN(mp3v)&&mp3v>0) fields['fldnqSXEgVa1Gl9Qb']=mp3v;
