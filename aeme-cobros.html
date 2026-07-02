@@ -303,15 +303,20 @@ textarea{resize:vertical;min-height:60px;}
         <div class="fg"><label>Saldo Pendiente</label><input type="number" id="fsal" placeholder="0.00"></div>
         <div class="fg"><label>Ejecutivo Responsable</label><input type="text" id="feje" placeholder="Nombre o iniciales"></div>
       </div>
-      <div class="msect">Fechas de Pago</div>
+      <div class="msect">Fechas y Montos de Cobro</div>
       <div class="frow">
-        <div class="fg"><label>&#128197; Fecha Anticipo</label><input type="date" id="fa"></div>
-        <div class="fg"><label>&#128197; Fecha Finiquito</label><input type="date" id="ff"></div>
+        <div class="fg"><label>Fecha anticipo</label><input type="date" id="fa"></div>
+        <div class="fg"><label>Fecha finiquito</label><input type="date" id="ff"></div>
       </div>
       <div class="frow3">
-        <div class="fg"><label>&#128197; Pago 1</label><input type="date" id="fp1"></div>
-        <div class="fg"><label>&#128197; Pago 2</label><input type="date" id="fp2"></div>
-        <div class="fg"><label>&#128197; Pago 3</label><input type="date" id="fp3"></div>
+        <div class="fg"><label>Pago 1 - fecha</label><input type="date" id="fp1"></div>
+        <div class="fg"><label>Pago 2 - fecha</label><input type="date" id="fp2"></div>
+        <div class="fg"><label>Pago 3 - fecha</label><input type="date" id="fp3"></div>
+      </div>
+      <div class="frow3">
+        <div class="fg"><label>Pago 1 - monto</label><input type="number" id="fmp1" placeholder="0"></div>
+        <div class="fg"><label>Pago 2 - monto</label><input type="number" id="fmp2" placeholder="0"></div>
+        <div class="fg"><label>Pago 3 - monto</label><input type="number" id="fmp3" placeholder="0"></div>
       </div>
       <div style="display:flex;align-items:center;gap:.6rem;background:#e34948,18;border-radius:6px;padding:.6rem .8rem;border:1px solid #e34948,44;">
         <input type="checkbox" id="fdone" style="width:18px;height:18px;accent-color:#e34948;cursor:pointer;flex-shrink:0;">
@@ -519,7 +524,7 @@ function openM(id){
   eid=id;
   document.getElementById('mtitle').textContent=id?'Editar Proyecto':'Nuevo Proyecto';
   document.getElementById('bdel').style.display=id?'block':'none';
-  ['fc','fvt','fant','fsal','feje','fnot','fa','ff','fp1','fp2','fp3','fmp1','fmp2','fmp3','fant2','fsal2'].forEach(i=>document.getElementById(i).value='');
+  ['fc','fvt','fant','fsal','feje','fnot','fa','ff','fp1','fp2','fp3','fmp1','fmp2','fmp3'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   document.getElementById('fdone').checked=false;
   document.getElementById('fcat').value='Proyectos Operados';
   document.getElementById('fest').value='Por cobrar';
