@@ -343,21 +343,25 @@ const F={
   sal:  'Saldo pendiente',
   n:    'Notas',
   done: 'Proyecto terminado',
-  fa:   'Fecha cobro anticipo',
-  ff:   'Fecha cobro finiquito',
-  fp:   'Fecha cobro pago parcial',
+  fa:   'fld4cZJuLNZKpaeAy',
+  ff:   'fldFgZQytHg8DvD7q',
+  fp:   'fldLlKoiVTEO7TLxn',
 };
 let showDone=false;
 let mesActual=new Date().toISOString().slice(0,7); // 'YYYY-MM'
 
 function ingresoDelMes(r,mes){
-  // Suma todos los ingresos que cayeron en el mes indicado
   const f=r.fields;
   let total=0;
-  const fa=f[F.fa]||''; const ff=f[F.ff]||''; const fp=f[F.fp]||'';
-  if(fa.startsWith(mes)) total+=(f[F.ant]||0);
-  if(ff.startsWith(mes)) total+=(f[F.sal]||0);
-  if(fp.startsWith(mes)) total+=(f[F.ant]||0); // pago parcial usa el campo anticipo como monto
+  // Try both field ID and field name since Airtable returns by name
+  const fa=f['fld4cZJuLNZKpaeAy']||f['Fecha cobro anticipo']||'';
+  const ff=f['fldFgZQytHg8DvD7q']||f['Fecha cobro finiquito']||'';
+  const fp=f['fldLlKoiVTEO7TLxn']||f['Fecha cobro pago parcial']||'';
+  const ant=f['Anticipo cobrado']||f['fld0wMjwdK51akhKC']||0;
+  const sal=f['Saldo pendiente']||f['fldmoHB4UfO9k95PF']||0;
+  if(fa && fa.startsWith(mes)) total+=ant;
+  if(ff && ff.startsWith(mes)) total+=sal;
+  if(fp && fp.startsWith(mes)) total+=ant;
   return total;
 }
 const META = 333000;
