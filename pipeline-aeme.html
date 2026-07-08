@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pipeline Comercial AEME · 14 jun 2026</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background: #f5f4f0;
+      color: #1a1a18;
+      font-size: 14px;
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+
+    .container { max-width: 860px; margin: 0 auto; }
+
+    /* Header */
+    .header { margin-bottom: 1.75rem; }
+    .header h1 { font-size: 20px; font-weight: 500; }
+    .header p { font-size: 12px; color: #5f5e5a; margin-top: 3px; }
+
+    /* Metric cards */
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+    .metric {
+      background: #fff;
+      border: 0.5px solid rgba(0,0,0,0.12);
+      border-radius: 10px;
+      padding: 1rem 1.1rem;
+    }
+    .metric-label { font-size: 11px; color: #888780; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+    .metric-value { font-size: 22px; font-weight: 500; }
+    .metric-sub { font-size: 11px; color: #888780; margin-top: 3px; }
+    .metric-value.success { color: #0f6e56; }
+    .metric-value.danger  { color: #993c1d; }
+
+    /* Alert */
+    .alert {
+      background: #fcebeb;
+      border: 0.5px solid #f7c1c1;
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: #a32d2d;
+      margin-bottom: 1.5rem;
+    }
+    .alert svg { flex-shrink: 0; }
+
+    /* Section title */
+    .section-title {
+      font-size: 11px;
+      font-weight: 500;
+      color: #888780;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin: 1.5rem 0 0.65rem;
+    }
+
+    /* Card */
+    .card {
+      background: #fff;
+      border: 0.5px solid rgba(0,0,0,0.12);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 0.25rem;
+    }
+
+    /* Table header row */
+    .tbl-head {
+      display: grid;
+      padding: 7px 14px;
+      background: #f5f4f0;
+      font-size: 10px;
+      font-weight: 500;
+      color: #888780;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .tbl-head.prosp { grid-template-columns: 1fr 100px 130px 100px; }
+    .tbl-head.prop  { grid-template-columns: 1fr 110px 120px; }
+
+    /* Rows */
+    .row {
+      display: grid;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-bottom: 0.5px solid rgba(0,0,0,0.07);
+      font-size: 13px;
+    }
+    .row:last-child { border-bottom: none; }
+    .row.prosp { grid-template-columns: 1fr 100px 130px 100px; }
+    .row.prop  { grid-template-columns: 1fr 110px 120px; }
+
+    .empresa { font-weight: 500; color: #1a1a18; margin-bottom: 2px; }
+    .prospid { font-size: 11px; color: #888780; }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 9px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+    .badge-red    { background: #fcebeb; color: #a32d2d; }
+    .badge-warn   { background: #faeeda; color: #854f0b; }
+    .badge-blue   { background: #e6f1fb; color: #185fa5; }
+    .badge-gray   { background: #f1efe8; color: #5f5e5a; border: 0.5px solid #d3d1c7; }
+    .badge-green  { background: #eaf3de; color: #3b6d11; }
+
+    /* Charts row */
+    .charts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 1.5rem;
+    }
+    .chart-wrap {
+      background: #fff;
+      border: 0.5px solid rgba(0,0,0,0.12);
+      border-radius: 10px;
+      padding: 1rem;
+    }
+    .chart-title { font-size: 11px; font-weight: 500; color: #888780; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.75rem; }
+    .chart-canvas-wrap { position: relative; height: 160px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #5f5e5a; }
+    .legend-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+
+    /* Footer */
+    .footer { margin-top: 2rem; font-size: 11px; color: #888780; text-align: center; }
+
+    @media (max-width: 600px) {
+      .charts { grid-template-columns: 1fr; }
+      .tbl-head.prosp, .row.prosp { grid-template-columns: 1fr 80px; }
+      .tbl-head.prosp span:nth-child(2),
+      .tbl-head.prosp span:nth-child(3),
+      .row.prosp > div:nth-child(2),
+      .row.prosp > div:nth-child(3) { display: none; }
+      .tbl-head.prop, .row.prop { grid-template-columns: 1fr 100px; }
+      .tbl-head.prop span:nth-child(2),
+      .row.prop > div:nth-child(2) { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>Pipeline Comercial AEME</h1>
+    <p>Reporte del día · Domingo 14 de junio de 2026 · Fuente: Airtable</p>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Pipeline activo</div>
+      <div class="metric-value">$618,100</div>
+      <div class="metric-sub">5 prospectos</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Propuestas en juego</div>
+      <div class="metric-value">$956,700</div>
+      <div class="metric-sub">7 propuestas</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Ganados</div>
+      <div class="metric-value success">2</div>
+      <div class="metric-sub">Agua de Puebla + Kalar</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Perdidos</div>
+      <div class="metric-value danger">4</div>
+      <div class="metric-sub">este ciclo</div>
+    </div>
+  </div>
+
+  <div class="alert">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a32d2d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <span><strong>Todos los prospectos activos están vencidos.</strong> Ninguno tiene próximo paso programado para hoy.</span>
+  </div>
+
+  <div class="section-title">Prospectos activos · semáforo</div>
+  <div class="card">
+    <div class="tbl-head prosp">
+      <span>Empresa</span>
+      <span>Presupuesto</span>
+      <span>Ejecutivo</span>
+      <span style="text-align:right;">Días vencido</span>
+    </div>
+    <div class="row prosp">
+      <div><div class="empresa">PTS Cimaco</div><div class="prospid">Torreón · PROSP-LEO-207</div></div>
+      <div>$78,000</div>
+      <div style="color:#5f5e5a;">Ramiro</div>
+      <div style="text-align:right;"><span class="badge badge-red">+49 días</span></div>
+    </div>
+    <div class="row prosp">
+      <div><div class="empresa">PT Tecnológico Don Bosco</div><div class="prospid">Saltillo · PROSP-LEO-212</div></div>
+      <div>$149,300</div>
+      <div style="color:#5f5e5a;">Ramiro / Jorge</div>
+      <div style="text-align:right;"><span class="badge badge-red">+39 días</span></div>
+    </div>
+    <div class="row prosp">
+      <div><div class="empresa">Las Villas</div><div class="prospid">Torreón · PROS-JR-LASVILLAS</div></div>
+      <div>$220,800</div>
+      <div style="color:#5f5e5a;">Jorge / Ramiro</div>
+      <div style="text-align:right;"><span class="badge badge-red">+35 días</span></div>
+    </div>
+    <div class="row prosp">
+      <div><div class="empresa">PT Museo Arocena</div><div class="prospid">Torreón · PROS-RAM-AROCENA</div></div>
+      <div>$120,000</div>
+      <div style="color:#5f5e5a;">Ramiro</div>
+      <div style="text-align:right;"><span class="badge badge-red">+42 días</span></div>
+    </div>
+    <div class="row prosp">
+      <div><div class="empresa">PT Osel Laguna</div><div class="prospid">Torreón · PROSP-JR-140</div></div>
+      <div>$50,000</div>
+      <div style="color:#5f5e5a;">Ramiro</div>
+      <div style="text-align:right;"><span class="badge badge-red">+29 días</span></div>
+    </div>
+  </div>
+
+  <div class="section-title">Propuestas en juego</div>
+  <div class="card">
+    <div class="tbl-head prop">
+      <span>Propuesta</span>
+      <span>Monto</span>
+      <span>Estatus</span>
+    </div>
+    <div class="row prop">
+      <div class="empresa">PT Las Villas INM May 2026</div>
+      <div>$220,800</div>
+      <span class="badge badge-gray">Borrador</span>
+    </div>
+    <div class="row prop">
+      <div class="empresa">PT Grupo Kalar May 2026</div>
+      <div>$250,000</div>
+      <span class="badge badge-gray">Borrador</span>
+    </div>
+    <div class="row prop">
+      <div class="empresa">PT Cimaco Tiendas Abril</div>
+      <div>$78,000</div>
+      <span class="badge badge-blue">Enviada</span>
+    </div>
+    <div class="row prop">
+      <div class="empresa">PT Arocena Estudio Públicos</div>
+      <div>$138,900</div>
+      <span class="badge badge-warn">En negociación</span>
+    </div>
+    <div class="row prop">
+      <div class="empresa">PT Cimaco Locales Comercial</div>
+      <div>$22,800</div>
+      <span class="badge badge-warn">En negociación</span>
+    </div>
+    <div class="row prop">
+      <div class="empresa">PT Cimaco Restaurantes Abr26</div>
+      <div>$156,200</div>
+      <span class="badge badge-warn">En negociación</span>
+    </div>
+    <div class="row prop">
+      <div class="empresa">Estudio Bodega Chilchota</div>
+      <div>$90,000</div>
+      <span class="badge badge-warn">En negociación</span>
+    </div>
+  </div>
+
+  <div class="charts">
+    <div class="chart-wrap">
+      <div class="chart-title">Prospectos por etapa</div>
+      <div class="chart-canvas-wrap">
+        <canvas id="chartEtapas" role="img" aria-label="Distribución de prospectos: 5 en propuesta enviada, 2 ganados, 4 perdidos, 1 frío">5 en propuesta enviada, 2 ganados, 4 perdidos, 1 frío.</canvas>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#e24b4a;"></div>Propuesta enviada (5)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#1d9e75;"></div>Ganado (2)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#888780;"></div>Perdido (4)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#b4b2a9;"></div>Frío (1)</div>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title">Propuestas por estatus</div>
+      <div class="chart-canvas-wrap">
+        <canvas id="chartProps" role="img" aria-label="Propuestas por estatus: $470,800 borrador, $407,900 negociación, $78,000 enviada">$470,800 borrador, $407,900 negociación, $78,000 enviada.</canvas>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#b4b2a9;"></div>Borrador ($470,800)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ba7517;"></div>Negociación ($407,900)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#378add;"></div>Enviada ($78,000)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">AEME Asesores · Pipeline Comercial 2026 · Datos al 14 de junio de 2026</div>
+
+</div>
+
+<script>
+  new Chart(document.getElementById('chartEtapas'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Propuesta enviada', 'Ganado', 'Perdido', 'Frío'],
+      datasets: [{
+        data: [5, 2, 4, 1],
+        backgroundColor: ['#e24b4a', '#1d9e75', '#888780', '#b4b2a9'],
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '62%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw } }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('chartProps'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Borrador', 'En negociación', 'Enviada'],
+      datasets: [{
+        data: [470800, 407900, 78000],
+        backgroundColor: ['#b4b2a9', '#ba7517', '#378add'],
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '62%',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ' $' + ctx.raw.toLocaleString('es-MX')
+          }
+        }
+      }
+    }
+  });
+</script>
+</body>
+</html>
