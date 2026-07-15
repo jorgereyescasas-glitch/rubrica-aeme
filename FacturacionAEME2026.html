@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard Facturación AEME 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1420;
+    --panel: #161d2e;
+    --panel2: #1c2438;
+    --border: #2a3350;
+    --text: #e7ebf5;
+    --muted: #93a0bd;
+    --green: #34d399;
+    --red: #f87171;
+    --amber: #fbbf24;
+    --blue: #60a5fa;
+    --purple: #c084fc;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 24px 32px 60px;
+  }
+  h1 { font-size: 22px; margin: 0 0 2px; }
+  .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .kpi {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .kpi .label { color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; }
+  .kpi .value { font-size: 22px; font-weight: 700; margin-top: 6px; }
+  .kpi .sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .kpi.pagado .value { color: var(--green); }
+  .kpi.pendiente .value { color: var(--amber); }
+  .kpi.parcial .value { color: var(--blue); }
+  .kpi.cancelado .value { color: var(--muted); }
+
+  .alert {
+    background: #3a1f1f;
+    border: 1px solid #6b2d2d;
+    color: #fca5a5;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 20px;
+    display: none;
+  }
+  .alert.show { display: block; }
+
+  .grid2 {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .panel h3 { margin: 0 0 12px; font-size: 14px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+
+  .aging-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13.5px;
+  }
+  .aging-row:last-child { border-bottom: none; }
+  .aging-bar { flex: 1; margin: 0 12px; height: 8px; border-radius: 4px; background: var(--panel2); overflow: hidden; }
+  .aging-bar > div { height: 100%; border-radius: 4px; }
+  .aging-label { width: 110px; color: var(--muted); }
+  .aging-amount { width: 130px; text-align: right; font-weight: 600; }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+    align-items: center;
+  }
+  select, input[type=text] {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 10px;
+    border-radius: 7px;
+    font-size: 13px;
+  }
+  input[type=text] { min-width: 220px; }
+  .tag-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag-btn {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--panel2);
+    color: var(--muted);
+    font-size: 12.5px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .tag-btn.active { color: var(--bg); font-weight: 700; }
+  .tag-btn[data-status="ALL"].active { background: var(--text); }
+  .tag-btn[data-status="PAGADA"].active { background: var(--green); }
+  .tag-btn[data-status="PENDIENTE"].active { background: var(--amber); }
+  .tag-btn[data-status="PARCIAL"].active { background: var(--blue); }
+  .tag-btn[data-status="CANCELADA"].active { background: var(--muted); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    text-align: left;
+    padding: 10px 10px;
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  thead th:hover { color: var(--text); }
+  tbody td { padding: 9px 10px; border-bottom: 1px solid #1e263b; vertical-align: top; }
+  tbody tr:hover { background: var(--panel2); }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .pill {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .pill.PAGADA { background: rgba(52,211,153,.15); color: var(--green); }
+  .pill.PENDIENTE { background: rgba(251,191,36,.15); color: var(--amber); }
+  .pill.PARCIAL { background: rgba(96,165,250,.15); color: var(--blue); }
+  .pill.CANCELADA { background: rgba(147,160,189,.15); color: var(--muted); }
+  .dias-critico { color: var(--red); font-weight: 700; }
+  .dias-alerta { color: var(--amber); font-weight: 700; }
+  .nota { color: var(--muted); font-size: 11.5px; }
+  .dup-flag { color: var(--red); font-size: 11px; margin-left: 6px; }
+  tfoot td { padding: 10px; font-weight: 700; border-top: 2px solid var(--border); }
+  .count { color: var(--muted); font-weight: 400; font-size: 12px; }
+  .footnote { color: var(--muted); font-size: 11.5px; margin-top: 26px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<h1>Facturación AEME 2026 — Cobranza</h1>
+<div class="subtitle">Cruce de facturas contra fecha de pago registrada en FACTURACION 2026.xlsx · Corte al 2026-07-14</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="label">Facturado 2026</div><div class="value" id="kpiFacturado">-</div><div class="sub" id="kpiFacturadoN">-</div></div>
+  <div class="kpi pagado"><div class="label">Cobrado</div><div class="value" id="kpiPagado">-</div><div class="sub" id="kpiPagadoPct">-</div></div>
+  <div class="kpi pendiente"><div class="label">Pendiente por cobrar</div><div class="value" id="kpiPendiente">-</div><div class="sub" id="kpiPendienteN">-</div></div>
+  <div class="kpi parcial"><div class="label">Con abono parcial</div><div class="value" id="kpiParcial">-</div><div class="sub" id="kpiParcialN">-</div></div>
+  <div class="kpi cancelado"><div class="label">Canceladas</div><div class="value" id="kpiCancelado">-</div></div>
+</div>
+
+<div class="grid2">
+  <div class="panel">
+    <h3>Facturado vs. cobrado por mes</h3>
+    <canvas id="chartMes" height="130"></canvas>
+  </div>
+  <div class="panel">
+    <h3>Antigüedad de lo pendiente por cobrar</h3>
+    <div id="agingBox"></div>
+  </div>
+</div>
+
+<div class="panel">
+  <h3 style="margin-bottom:14px;">Detalle de facturas <span class="count" id="rowCount"></span></h3>
+  <div class="controls">
+    <div class="tag-filters" id="statusFilters">
+      <div class="tag-btn active" data-status="ALL">Todas</div>
+      <div class="tag-btn" data-status="PENDIENTE">Pendientes</div>
+      <div class="tag-btn" data-status="PARCIAL">Parciales</div>
+      <div class="tag-btn" data-status="PAGADA">Pagadas</div>
+      <div class="tag-btn" data-status="CANCELADA">Canceladas</div>
+    </div>
+    <select id="mesFilter"><option value="ALL">Todos los meses</option></select>
+    <select id="sucursalFilter"><option value="ALL">Todas las sucursales</option></select>
+    <input type="text" id="searchBox" placeholder="Buscar cliente, folio, proyecto...">
+  </div>
+  <div style="overflow-x:auto;">
+  <table id="mainTable">
+    <thead>
+      <tr>
+        <th data-key="fecha">Fecha factura</th>
+        <th data-key="folio">Folio</th>
+        <th data-key="cliente">Cliente</th>
+        <th data-key="proyecto">Proyecto</th>
+        <th data-key="sucursal">Sucursal</th>
+        <th data-key="importe" class="num">Importe (sin IVA)</th>
+        <th data-key="iva" class="num">IVA</th>
+        <th data-key="total" class="num">Total (con IVA)</th>
+        <th data-key="dias_transcurridos" class="num">Días desde factura</th>
+        <th data-key="status">Estatus</th>
+        <th data-key="fecha_pago_display">Fecha / nota de pago</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+  </div>
+</div>
+
+<div class="panel" style="margin-top:16px;">
+  <h3 style="margin-bottom:4px;">Cobranza consolidada — ¿a quién no le he cobrado desde hace más tiempo?</h3>
+  <div class="subtitle" style="margin-bottom:14px;">Cruce con CARTERA DE CLIENTES 2026.xlsx (hojas "2026 X PAGAR" y "CLIENTES"), ordenado por antigüedad del último movimiento.</div>
+  <div class="kpis" style="margin-bottom:18px;">
+    <div class="kpi pendiente"><div class="label">Facturado y sin cobrar</div><div class="value" id="kpiCobranzaA">-</div><div class="sub" id="kpiCobranzaAN">-</div></div>
+    <div class="kpi parcial"><div class="label">Saldo de proyecto sin facturar</div><div class="value" id="kpiCobranzaB">-</div><div class="sub" id="kpiCobranzaBN">-</div></div>
+  </div>
+  <div style="overflow-x:auto;">
+  <table id="cobranzaTable">
+    <thead>
+      <tr>
+        <th>Cliente</th>
+        <th>Proyecto / folio</th>
+        <th>Origen</th>
+        <th class="num">Saldo pendiente</th>
+        <th class="num">Último movimiento</th>
+        <th class="num">Días</th>
+      </tr>
+    </thead>
+    <tbody id="cobranzaBody"></tbody>
+  </table>
+  </div>
+</div>
+
+<div class="panel" style="margin-top:16px;">
+  <h3 style="margin-bottom:12px;">Hallazgos a revisar (del cruce con CARTERA DE CLIENTES)</h3>
+  <div id="discrepanciasBox"></div>
+</div>
+
+<div class="footnote">
+  Fuente: FACTURACION 2026.xlsx (hojas mensuales + Sucursal Saltillo/Monterrey) + CARTERA DE CLIENTES 2026.xlsx (hojas "2026 X PAGAR", "CLIENTES", "EFECTIVO"). El estatus se deriva de la columna "FECHA DE PAGO" de cada factura: fecha real = Pagada; texto con "PAG" = pagada (fecha aproximada); texto con "AB"/"abono" = pago parcial; texto con "CANC" = cancelada; vacío = pendiente.<br>
+  Importe = columna IMPORTE del Excel (sin IVA). IVA = TOTAL − IMPORTE, tal cual están capturados. Donde esa resta no da ~16% se marca "revisar" en vez de calcular un IVA incorrecto.<br>
+  "Facturado y sin cobrar" = hoja "2026 X PAGAR" (lista manual de Jorge, con subtotal/IVA/abono limpios). "Saldo de proyecto sin facturar" = hoja "CLIENTES": proyectos donde ya se facturó y cobró un anticipo pero el resto del contrato aún no se factura — es cobranza potencial, no confirmada.<br>
+  La hoja EFECTIVO (pagos en efectivo de clientes sin factura formal) se revisó pero no tiene saldos pendientes: los 12 proyectos registrados están en $0.<br>
+  No se incluyó la hoja histórica "PENDIENTES POR PAGAR" de FACTURACION (registros de 2014-2015, ajenos al ejercicio 2026).<br>
+  Los estados de cuenta bancarios en la carpeta son PDFs escaneados (sin texto) — este cruce usa la fecha de pago ya registrada en los Excels, no una verificación línea por línea contra el banco.
+</div>
+
+<script>
+const DATA = [{"sheet": "ENERO", "sucursal": "TORREON", "fecha": "2026-01-09", "folio": 1835, "cliente": "CRECENTO REAL ESTATE", "descripcion": "ESTUDIO DE MERCADO OPEN SKIES.", "proyecto": "OPENSKIES INM TRC NOV25", "importe": 62490, "total": 72488.4, "fecha_pago_raw": "2026-02-27 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-02-27", "nota_pago": null, "dias_transcurridos": 186, "folio_duplicado": false, "iva": 9998.4, "iva_atipico": false}, {"sheet": "ENERO", "sucursal": "TORREON", "fecha": "2026-01-19", "folio": 1836, "cliente": "CARLOS GUILLERMO BARRON ESQUIVEL", "descripcion": "SERVICIO DE ESTUDIO DE MERCADO", "proyecto": "PREDIOTORREON SP INM TRC ENE26", "importe": 41400, "total": 48024, "fecha_pago_raw": "2026-01-19 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-01-19", "nota_pago": null, "dias_transcurridos": 176, "folio_duplicado": false, "iva": 6624, "iva_atipico": false}, {"sheet": "ENERO", "sucursal": "TORREON", "fecha": "2026-01-20", "folio": 1837, "cliente": "CENTRO COMERCIAL LA ESMERALDA", "descripcion": "ESTUDIO DE MERCADO.", "proyecto": "ESMERALDA PLACEIT INM TRC JUL25", "importe": 14640, "total": 16982.4, "fecha_pago_raw": "2026-02-10 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-02-10", "nota_pago": null, "dias_transcurridos": 175, "folio_duplicado": false, "iva": 2342.4, "iva_atipico": false}, {"sheet": "ENERO", "sucursal": "TORREON", "fecha": "2026-01-26", "folio": 1838, "cliente": "PINTURAS OSEL", "descripcion": "ESTUDIO DE MERCADO. PAGO 2 DE 2", "proyecto": "OSEL TOP MTY SEP25", "importe": 76000, "total": 88160, "fecha_pago_raw": "2026-02-16 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-02-16", "nota_pago": null, "dias_transcurridos": 169, "folio_duplicado": false, "iva": 12160, "iva_atipico": false}, {"sheet": "ENERO", "sucursal": "TORREON", "fecha": "2026-01-28", "folio": 1839, "cliente": "CENTRO COMERCIAL LA ESMERALDA", "descripcion": "ESTUDIO DE MERCADO", "proyecto": "ESMERALDA VILLA JUAREZ INM TRC JUL25", "importe": 35720, "total": 41435.2, "fecha_pago_raw": "2026-02-10 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-02-10", "nota_pago": null, "dias_transcurridos": 167, "folio_duplicado": false, "iva": 5715.2, "iva_atipico": false}, {"sheet": "ENERO", "sucursal": "TORREON", "fecha": "2026-01-29", "folio": 1840, "cliente": "LABORATORIO Y SERVICIOS MEDICOS RIVERA", "descripcion": "MYSTERY SHOPPER", "proyecto": "RIVERA ESP DGO ENE 26", "importe": null, "total": null, "fecha_pago_raw": "canc 30/01", "status": "CANCELADA", "fecha_pago_final": null, "nota_pago": "canc 30/01", "dias_transcurridos": 166, "folio_duplicado": false, "iva": null, "iva_atipico": false}, {"sheet": "ENERO", "sucursal": "TORREON", "fecha": "2026-01-30", "folio": 1841, "cliente": "CESAR HUMBERTO CADEN CADENA", "descripcion": "ESTUDIO DE MERCAO", "proyecto": "CLINICA CORAZON INM TRC SEP25", "importe": 87912, "total": 101977.92, "fecha_pago_raw": "2026-02-04 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-02-04", "nota_pago": null, "dias_transcurridos": 165, "folio_duplicado": false, "iva": 14065.92, "iva_atipico": false}, {"sheet": "FEBRERO", "sucursal": "TORREON", "fecha": "2026-02-03", "folio": 1842, "cliente": "LABORATORIO Y SERVICIOS MEDICOS RIVERA", "descripcion": "MYSTERY SHOPPER", "proyecto": "RIVERA ESP DGO ENE 26", "importe": 5000, "total": 5800, "fecha_pago_raw": "2026-02-04 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-02-04", "nota_pago": null, "dias_transcurridos": 161, "folio_duplicado": false, "iva": 800, "iva_atipico": false}, {"sheet": "FEBRERO", "sucursal": "TORREON", "fecha": "2026-02-04", "folio": 1843, "cliente": "MUNICIPIO DE PARRAS COAHUILA", "descripcion": "ESTUDIO DE OPINION CIUDADANA", "proyecto": "PARRAS PUL TRC ENE26", "importe": 83000, "total": 96280.0, "fecha_pago_raw": "abono 48140 18/02/26 fini 4/03 48140", "status": "PAGADA", "fecha_pago_final": null, "nota_pago": "abono 48140 18/02/26 fini 4/03 48140 [confirmado saldo 0 en CARTERA DE CLIENTES]", "dias_transcurridos": 160, "folio_duplicado": false, "iva": 13280.0, "iva_atipico": false}, {"sheet": "FEBRERO", "sucursal": "TORREON", "fecha": "2026-02-06", "folio": 1844, "cliente": "INDIGO INMUEBLES", "descripcion": "60% ANTICIPO POR INVESTIGACION DE MERCADO CEDIS LA", "proyecto": "PREDIO MTY INM TRC ENE26", "importe": 36000, "total": 41760, "fecha_pago_raw": "2026-02-17 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-02-17", "nota_pago": null, "dias_transcurridos": 158, "folio_duplicado": false, "iva": 5760, "iva_atipico": false}, {"sheet": "FEBRERO", "sucursal": "TORREON", "fecha": "2026-02-09", "folio": 1845, "cliente": "SEGURIDAD INDUSTRIAL Y SOLDADURAS", "descripcion": "ESTUDIO DE MERCADO", "proyecto": "SISSA ESP TRC ENE26", "importe": 10800, "total": 12528, "fecha_pago_raw": "2026-02-12 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-02-12", "nota_pago": null, "dias_transcurridos": 155, "folio_duplicado": false, "iva": 1728, "iva_atipico": false}, {"sheet": "FEBRERO", "sucursal": "TORREON", "fecha": "2026-02-10", "folio": 1846, "cliente": "CORPORATIVO PROFESIONAL ALFA", "descripcion": "NAMING E IMAGEN CORPORATIVA ALFA Y DISTRITO ALFA.", "proyecto": "ALFA CIA TRC FEB26", "importe": 60000, "total": 69600, "fecha_pago_raw": "2026-02-23 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-02-23", "nota_pago": null, "dias_transcurridos": 154, "folio_duplicado": false, "iva": 9600, "iva_atipico": false}, {"sheet": "FEBRERO", "sucursal": "TORREON", "fecha": "2026-02-23", "folio": 1847, "cliente": "MUNICIPIO SAN PEDRO", "descripcion": "CANCELADA", "proyecto": null, "importe": null, "total": null, "fecha_pago_raw": "CAN 23/02", "status": "CANCELADA", "fecha_pago_final": null, "nota_pago": "CAN 23/02", "dias_transcurridos": 141, "folio_duplicado": false, "iva": null, "iva_atipico": false}, {"sheet": "FEBRERO", "sucursal": "TORREON", "fecha": "2026-02-26", "folio": 1848, "cliente": "SISTEMA MUNICIPAL DE AGUAS Y SANEAMIENTO DE TORREON COAHUILA", "descripcion": "ESTUDIO DE OPINION PUBLICA SATISFACCION DE USUARIOS", "proyecto": "SIMAS PUL TRC FEB26", "importe": 0, "total": 0, "fecha_pago_raw": "cacn5/03", "status": "CANCELADA", "fecha_pago_final": null, "nota_pago": "cacn5/03", "dias_transcurridos": 138, "folio_duplicado": false, "iva": 0, "iva_atipico": false}, {"sheet": "marzo", "sucursal": "TORREON", "fecha": "2026-03-05", "folio": 1849, "cliente": "LABORATORIO Y SERVICIOS MEDICOS RIVERA", "descripcion": "MYSTERY SHOPPER", "proyecto": "RIVERA ESP DGO ENE 26", "importe": 5000, "total": 5800, "fecha_pago_raw": "2026-03-17 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-03-17", "nota_pago": null, "dias_transcurridos": 131, "folio_duplicado": false, "iva": 800, "iva_atipico": false}, {"sheet": "marzo", "sucursal": "TORREON", "fecha": "2026-03-11", "folio": 1850, "cliente": "SINCRONIA INVESTIGACION", "descripcion": "RENTA CAMARA GESELL", "proyecto": "SINCRONIA ESP TRC MAR26", "importe": 25980, "total": 30136.8, "fecha_pago_raw": "2026-03-13 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-03-13", "nota_pago": null, "dias_transcurridos": 125, "folio_duplicado": false, "iva": 4156.8, "iva_atipico": false}, {"sheet": "marzo", "sucursal": "TORREON", "fecha": "2026-03-13", "folio": 1851, "cliente": "INMOBILIARIA PARQUE SALTILLO", "descripcion": "ESTUDIO DE MERCADO", "proyecto": "HOTEL INM SLW MAR26", "importe": 18000, "total": 20880, "fecha_pago_raw": "2026-03-20 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-03-20", "nota_pago": null, "dias_transcurridos": 123, "folio_duplicado": false, "iva": 2880, "iva_atipico": false}, {"sheet": "marzo", "sucursal": "TORREON", "fecha": "2026-03-23", "folio": 1852, "cliente": "GRUAS Y SERVICIOS DE LA LAGUNA", "descripcion": "ESTUDIO DE MERCADO", "proyecto": "2 PREDIO INM TRC MZO 26", "importe": 70000, "total": 81200, "fecha_pago_raw": "2026-03-20 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-03-20", "nota_pago": null, "dias_transcurridos": 113, "folio_duplicado": false, "iva": 11200, "iva_atipico": false}, {"sheet": "marzo", "sucursal": "TORREON", "fecha": "2026-03-23", "folio": 1853, "cliente": "SEGURIDAD INDUSTRIAL Y SOLDADURAS", "descripcion": "ESTUDIO DE MERCADO", "proyecto": "SISSA ESP TRC ENE26", "importe": null, "total": null, "fecha_pago_raw": "canc 30 mzo", "status": "CANCELADA", "fecha_pago_final": null, "nota_pago": "canc 30 mzo", "dias_transcurridos": 113, "folio_duplicado": false, "iva": null, "iva_atipico": false}, {"sheet": "marzo", "sucursal": "TORREON", "fecha": "2026-03-24", "folio": 1854, "cliente": "SINCRONIA INVESTIGACION", "descripcion": "RENTA CAMARA GESELL", "proyecto": "SINCRONIA ESP TRC MAR26", "importe": 17320, "total": 20091.2, "fecha_pago_raw": "2026-03-26 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-03-26", "nota_pago": null, "dias_transcurridos": 112, "folio_duplicado": false, "iva": 2771.2, "iva_atipico": false}, {"sheet": "marzo", "sucursal": "TORREON", "fecha": "2026-03-25", "folio": 1855, "cliente": "CARLOS GUILLERMO BARRON ESQUIVEL", "descripcion": "SERVICIO DE ESTUDIO DE MERCADO", "proyecto": "PREDIOTORREON SP INM TRC ENE26", "importe": 27600, "total": 32016, "fecha_pago_raw": "2026-03-27 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-03-27", "nota_pago": null, "dias_transcurridos": 111, "folio_duplicado": false, "iva": 4416, "iva_atipico": false}, {"sheet": "abril", "sucursal": "TORREON", "fecha": "2026-04-01", "folio": 1856, "cliente": "SEGURIDAD INDUSTRIAL Y SOLDADURAS", "descripcion": "ESTUDIO DE MERCADO", "proyecto": "SISSA ESP TRC ENE26", "importe": 7200, "total": 8352, "fecha_pago_raw": "2026-04-06 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-04-06", "nota_pago": null, "dias_transcurridos": 104, "folio_duplicado": false, "iva": 1152, "iva_atipico": false}, {"sheet": "abril", "sucursal": "TORREON", "fecha": "2026-04-01", "folio": 1857, "cliente": "INDIGO INMUEBLES", "descripcion": "40% FINIQUITO POR INVESTIGACION DE MERCADO CEDIS LA ", "proyecto": "PREDIO MTY INM TRC ENE26", "importe": 24000, "total": 27840, "fecha_pago_raw": "pag 14/04", "status": "PAGADA", "fecha_pago_final": null, "nota_pago": "pag 14/04", "dias_transcurridos": 104, "folio_duplicado": false, "iva": 3840, "iva_atipico": false}, {"sheet": "abril", "sucursal": "TORREON", "fecha": "2026-04-01", "folio": 1858, "cliente": "LABORATORIO Y SERVICIOS MEDICOS RIVERA", "descripcion": "MYSTERY SHOPPER", "proyecto": "RIVERA ESP DGO ENE 26", "importe": 5000, "total": 5800, "fecha_pago_raw": "2026-04-07 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-04-07", "nota_pago": null, "dias_transcurridos": 104, "folio_duplicado": false, "iva": 800, "iva_atipico": false}, {"sheet": "abril", "sucursal": "TORREON", "fecha": "2026-04-06", "folio": 1859, "cliente": "GRUPO RECOVE & GAMA INMOBILIARIA", "descripcion": "CANCELADA", "proyecto": "CANCELADA", "importe": null, "total": null, "fecha_pago_raw": "CANC 7/04", "status": "CANCELADA", "fecha_pago_final": null, "nota_pago": "CANC 7/04", "dias_transcurridos": 99, "folio_duplicado": false, "iva": null, "iva_atipico": false}, {"sheet": "abril", "sucursal": "TORREON", "fecha": "2026-04-07", "folio": 1860, "cliente": "GRUPO RECOVE & GAMA INMOBILIARIA", "descripcion": "SPOT EN PANTALLA FELIPE PESCADOR Y PANTALLA INDEPENDENCIA", "proyecto": "INVERSION JRC", "importe": 5387.93, "total": 6250, "fecha_pago_raw": "2026-04-07 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-04-07", "nota_pago": null, "dias_transcurridos": 98, "folio_duplicado": false, "iva": 862.07, "iva_atipico": false}, {"sheet": "abril", "sucursal": "TORREON", "fecha": "2026-04-08", "folio": 1861, "cliente": "INDIGO INMUEBLES", "descripcion": "ANTICIPO 60% POR ESTUDIO DE MERCADO SEGUNDA ETAPA CEDIS LA", "proyecto": "PREDIO MTY INM TRC MAR26", "importe": 54000, "total": 62640, "fecha_pago_raw": "2026-04-21 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-04-21", "nota_pago": null, "dias_transcurridos": 97, "folio_duplicado": false, "iva": 8640, "iva_atipico": false}, {"sheet": "abril", "sucursal": "TORREON", "fecha": "2026-04-09", "folio": 1862, "cliente": "ATENCION GERIATRICA DE LA LAGUNA", "descripcion": "ESTUDIO DE MERCADO", "proyecto": "CLINICA GERIATREE  CDMX INM TRC ABR26", "importe": 28800, "total": 33408, "fecha_pago_raw": "2026-04-09 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-04-09", "nota_pago": null, "dias_transcurridos": 96, "folio_duplicado": false, "iva": 4608, "iva_atipico": false}, {"sheet": "abril", "sucursal": "TORREON", "fecha": "2026-04-15", "folio": 1863, "cliente": "CORPORATIVO PROFESIONAL ALFA", "descripcion": "ANTICIIPO 50% CAMPAÑA ACCION Y BIENESTAR", "proyecto": "CAMPAÑIA BIENESTAR Y SALUD ABR26", "importe": 22500, "total": 26100, "fecha_pago_raw": "2026-04-17 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-04-17", "nota_pago": null, "dias_transcurridos": 90, "folio_duplicado": false, "iva": 3600, "iva_atipico": false}, {"sheet": "abril", "sucursal": "TORREON", "fecha": "2026-04-15", "folio": 1864, "cliente": "TESORERIA MPAL DE TORREON", "descripcion": "SERVICIO PROFESIONAL PARA ELABORAR ESTUDIOS DE DIAGNOSTICO SITUACIONAL PARA EVUALAR EL POSICIONAMIENTO DE LOS PROGRAMAS MEDIANTE ENCUESTAS CUALITATIVAS Y CUANTITATIVAS PARA LA DIRECCION DE DESARROLLO SOCIAL EN BASE A CONTRATO DA/CL/DGCG/IR/001*2026 ENEROA MAYO 1 ER  PAGO DE 5..", "proyecto": "CANCELADA", "importe": null, "total": null, "fecha_pago_raw": "CANC17/04", "status": "CANCELADA", "fecha_pago_final": null, "nota_pago": "CANC17/04", "dias_transcurridos": 90, "folio_duplicado": false, "iva": null, "iva_atipico": false}, {"sheet": "abril", "sucursal": "TORREON", "fecha": "2026-04-15", "folio": 1865, "cliente": "SOYUG", "descripcion": "ANTICIPO ESTUDIO DE MERCADO 1 DE 4", "proyecto": "CONSULTORIOS INM  TRC ABR26", "importe": 22700, "total": 26332, "fecha_pago_raw": "2026-04-15 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-04-15", "nota_pago": null, "dias_transcurridos": 90, "folio_duplicado": false, "iva": 3632, "iva_atipico": false}, {"sheet": "abril", "sucursal": "TORREON", "fecha": "2026-04-17", "folio": 1866, "cliente": "TESORERIA MPAL DE TORREON", "descripcion": "SERVICIO PROFESIONAL PARA ELABORAR ESTUDIOS DE DIAGNOSTICO SITUACIONAL PARA EVUALAR EL POSICIONAMIENTO DE LOS PROGRAMAS MEDIANTE ENCUESTAS CUALITATIVAS Y CUANTITATIVAS PARA LA DIRECCION DE DESARROLLO SOCIAL EN BASE A CONTRATO DA/CL/DGCG/IR/001*2026  FEBREROA JUNIO 1 ER  PAGO DE 5..", "proyecto": "TORREON IGUALA PUL TRC 2026", "importe": 381150, "total": 442134, "fecha_pago_raw": "PAG 4/05", "status": "PAGADA", "fecha_pago_final": null, "nota_pago": "PAG 4/05", "dias_transcurridos": 88, "folio_duplicado": false, "iva": 60984, "iva_atipico": false}, {"sheet": "abril", "sucursal": "TORREON", "fecha": "2026-04-20", "folio": 1867, "cliente": "SOI MONTESSORI", "descripcion": "ESTUDIO DE MERCADO", "proyecto": "MONTESORI INM TRC ABR26", "importe": 30000, "total": 34800, "fecha_pago_raw": "PAG23/04", "status": "PAGADA", "fecha_pago_final": null, "nota_pago": "PAG23/04", "dias_transcurridos": 85, "folio_duplicado": false, "iva": 4800, "iva_atipico": false}, {"sheet": "abril", "sucursal": "TORREON", "fecha": "2026-04-20", "folio": 1868, "cliente": "INMOBILIARIA PARQUE SALTILLO", "descripcion": "FINIQUITO ESTUDIO DE MERCADO", "proyecto": "HOTEL INM SLW MAR26", "importe": 12000, "total": 13920, "fecha_pago_raw": "PAG 30/04", "status": "PAGADA", "fecha_pago_final": null, "nota_pago": "PAG 30/04", "dias_transcurridos": 85, "folio_duplicado": false, "iva": 1920, "iva_atipico": false}, {"sheet": "abril", "sucursal": "TORREON", "fecha": "2026-04-22", "folio": 1869, "cliente": "SOLUCIONES LOGISTICAS ORMAA", "descripcion": "FINIQUITO ESTUDIO DE MERCADO", "proyecto": "GIMNASIO ADULTOS AGO25", "importe": 22450, "total": 26042, "fecha_pago_raw": "PAG 24/04", "status": "PAGADA", "fecha_pago_final": null, "nota_pago": "PAG 24/04", "dias_transcurridos": 83, "folio_duplicado": false, "iva": 3592, "iva_atipico": false}, {"sheet": "abril", "sucursal": "TORREON", "fecha": "2026-04-22", "folio": 1870, "cliente": "LA CANDELARIA DE LERDO", "descripcion": "ANTICIPO ESTUDIO DE MERCADO.", "proyecto": "HOTEL GOMEZ INM TRC ABR26", "importe": 30550, "total": 35438, "fecha_pago_raw": "pag 24/04", "status": "PAGADA", "fecha_pago_final": null, "nota_pago": "pag 24/04", "dias_transcurridos": 83, "folio_duplicado": false, "iva": 4888, "iva_atipico": false}, {"sheet": "abril", "sucursal": "TORREON", "fecha": "2026-04-24", "folio": 1871, "cliente": "CENTRO EDUCATIVO BICULTURAL IMES", "descripcion": "ESTUDIO DE MERCADO", "proyecto": "IMES INM TRC ABR26", "importe": 80000, "total": 52800, "fecha_pago_raw": "AB 24/04 40000", "status": "PARCIAL", "fecha_pago_final": null, "nota_pago": "AB 24/04 40000", "dias_transcurridos": 81, "folio_duplicado": false, "iva": null, "iva_atipico": true}, {"sheet": "abril", "sucursal": "TORREON", "fecha": "2026-04-29", "folio": 1872, "cliente": "INMOBILIARIA PIPAO", "descripcion": "ANT ESTUDIO DE MERCADO", "proyecto": "DOCTORES INM TRC ABR26", "importe": 24600, "total": 28536, "fecha_pago_raw": "2026-05-04 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-05-04", "nota_pago": null, "dias_transcurridos": 76, "folio_duplicado": false, "iva": 3936, "iva_atipico": false}, {"sheet": "abril", "sucursal": "TORREON", "fecha": "2026-04-29", "folio": 1873, "cliente": "CORPORATIVO PROFESIONAL ALFA", "descripcion": "FINIQUITO CAMPAÑA ACCION Y BIENESTAR", "proyecto": "CAMPAÑIA BIENESTAR Y SALUD ABR26", "importe": null, "total": null, "fecha_pago_raw": "canc 30/04", "status": "CANCELADA", "fecha_pago_final": null, "nota_pago": "canc 30/04", "dias_transcurridos": 76, "folio_duplicado": false, "iva": null, "iva_atipico": false}, {"sheet": "abril", "sucursal": "TORREON", "fecha": "2026-04-29", "folio": 1874, "cliente": "CORPORATIVO PROFESIONAL ALFA", "descripcion": "IMPRESIÓN DE MATERIALES DIVERSOS PARA CAMPAÑA ACCION Y BIENESTAR (VINILES,LONAS,POSTERS VOLATES)", "proyecto": "CAMPAÑIA BIENESTAR Y SALUD ABR26", "importe": null, "total": null, "fecha_pago_raw": "canc 30/04", "status": "CANCELADA", "fecha_pago_final": null, "nota_pago": "canc 30/04", "dias_transcurridos": 76, "folio_duplicado": false, "iva": null, "iva_atipico": false}, {"sheet": "mayo", "sucursal": "TORREON", "fecha": "2026-05-04", "folio": 1875, "cliente": "CORPORATIVO PROFESIONAL ALFA", "descripcion": "FINIQUITO CAMPAÑA ACCION Y BIENESTAR", "proyecto": "CAMPAÑIA BIENESTAR Y SALUD ABR26", "importe": 22500, "total": 26100, "fecha_pago_raw": "2026-05-07 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-05-07", "nota_pago": null, "dias_transcurridos": 71, "folio_duplicado": false, "iva": 3600, "iva_atipico": false}, {"sheet": "mayo", "sucursal": "TORREON", "fecha": "2026-05-04", "folio": 1876, "cliente": "CORPORATIVO PROFESIONAL ALFA", "descripcion": "IMPRESIÓN DE MATERIALES DIVERSOS PARA CAMPAÑA ACCION Y BIENESTAR (VINILES,LONAS,POSTERS VOLATES)", "proyecto": "CAMPAÑIA BIENESTAR Y SALUD ABR26", "importe": 10106, "total": 11722.96, "fecha_pago_raw": "2026-05-07 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-05-07", "nota_pago": null, "dias_transcurridos": 71, "folio_duplicado": false, "iva": 1616.96, "iva_atipico": false}, {"sheet": "mayo", "sucursal": "TORREON", "fecha": "2026-05-06", "folio": 1877, "cliente": "LABORATORIO Y SERVICIOS MEDICOS RIVERA", "descripcion": "MYSTERY SHOPPER", "proyecto": "RIVERA ESP DGO ENE 26", "importe": 5000, "total": 5800, "fecha_pago_raw": "2026-05-14 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-05-14", "nota_pago": null, "dias_transcurridos": 69, "folio_duplicado": false, "iva": 800, "iva_atipico": false}, {"sheet": "mayo", "sucursal": "TORREON", "fecha": "2026-05-12", "folio": 1878, "cliente": "TESORERIA MPAL DE TORREON", "descripcion": "SERVICIO PROFESIONAL PARA ELABORAR ESTUDIOS DE DIAGNOSTICO SITUACIONAL PARA EVUALAR EL POSICIONAMIENTO DE LOS PROGRAMAS MEDIANTE ENCUESTAS CUALITATIVAS Y CUANTITATIVAS PARA LA DIRECCION DE DESARROLLO SOCIAL EN BASE A CONTRATO DA/CL/DGCG/IR/001*2026  FEBREROA JUNIO 2DO  PAGO DE 5..", "proyecto": "TORREON IGUALA PUL TRC 2026", "importe": 381150, "total": 442134, "fecha_pago_raw": "2026-05-25 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-05-25", "nota_pago": null, "dias_transcurridos": 63, "folio_duplicado": false, "iva": 60984, "iva_atipico": false}, {"sheet": "mayo", "sucursal": "TORREON", "fecha": "2026-05-13", "folio": 1879, "cliente": "LUIS ALBERTO HOYOS RAMIREZ", "descripcion": "ANTICIPO ESTUDIO DE MERCADO 2 Y 3/4", "proyecto": "CONSULTORIOS INM  TRC ABR26", "importe": 58620.69, "total": 68000, "fecha_pago_raw": "2026-05-13 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-05-13", "nota_pago": null, "dias_transcurridos": 62, "folio_duplicado": false, "iva": 9379.31, "iva_atipico": false}, {"sheet": "mayo", "sucursal": "TORREON", "fecha": "2026-05-21", "folio": 1880, "cliente": "GRUPO RECOVE & GAMA INMOBILIARIA", "descripcion": "SPOT PANTALLA FELIPE PESCADOR", "proyecto": "INVERSION JRC", "importe": 5387.93, "total": 6250, "fecha_pago_raw": "2026-05-22 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-05-22", "nota_pago": null, "dias_transcurridos": 54, "folio_duplicado": false, "iva": 862.07, "iva_atipico": false}, {"sheet": "mayo", "sucursal": "TORREON", "fecha": "2026-05-29", "folio": 1881, "cliente": "LA CANDELARIA DE LERDO", "descripcion": "FINIQUITO ESTUDIO DE MERCADO", "proyecto": "HOTEL GOMEZ INM TRC ABR26", "importe": 30550, "total": 35438, "fecha_pago_raw": "2026-06-01 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-06-01", "nota_pago": null, "dias_transcurridos": 46, "folio_duplicado": false, "iva": 4888, "iva_atipico": false}, {"sheet": "mayo", "sucursal": "TORREON", "fecha": "2026-05-29", "folio": 1882, "cliente": "LA CANDELARIA DE LERDO", "descripcion": "ANTICIPO ESTUDIO DE MERCADO.", "proyecto": "HOTEL GOMEZ INM TRC MAY26", "importe": 32900, "total": 38164, "fecha_pago_raw": "2026-06-23 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-06-23", "nota_pago": null, "dias_transcurridos": 46, "folio_duplicado": false, "iva": 5264, "iva_atipico": false}, {"sheet": "mayo", "sucursal": "TORREON", "fecha": "2026-06-22", "folio": 1883, "cliente": "PRODUCTOS DE CARNE EN ENGORDA", "descripcion": "ESTUDIO DE MERCADO", "proyecto": "REVUELTA TOP TRC JUN26", "importe": 118200, "total": 54112, "fecha_pago_raw": "22/06/2026 AB", "status": "PAGADA", "fecha_pago_final": null, "nota_pago": "22/06/2026 AB [confirmado saldo 0 en CARTERA DE CLIENTES]", "dias_transcurridos": 22, "folio_duplicado": false, "iva": null, "iva_atipico": true}, {"sheet": "mayo", "sucursal": "TORREON", "fecha": "2026-06-24", "folio": 1884, "cliente": "CONCESIONES INTEGRALES", "descripcion": "ESTUDIO DE MERCADO", "proyecto": "AGUAPUEBLA TOP TRC ABR26", "importe": 156000, "total": 135720, "fecha_pago_raw": "AB 26/06", "status": "PAGADA", "fecha_pago_final": null, "nota_pago": "AB 26/06 [confirmado saldo 0 en CARTERA DE CLIENTES]", "dias_transcurridos": 20, "folio_duplicado": false, "iva": null, "iva_atipico": true}, {"sheet": "junio", "sucursal": "TORREON", "fecha": "2026-06-02", "folio": 1883, "cliente": "GOBIERNO DEL ESTADO DE COAHUILA DE ZARAGOZA", "descripcion": "ESTUDIO DE OPINION DE SALUD PUBLICA EN EL ESTADO DE COAHUILA DE ZARAGOZA ANTECEDENTES-METADOLOGIA COAHUILA 2026", "proyecto": null, "importe": 733333.34, "total": 850666.67, "fecha_pago_raw": "2026-06-05 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-06-05", "nota_pago": null, "dias_transcurridos": 42, "folio_duplicado": true, "iva": 117333.33, "iva_atipico": false}, {"sheet": "junio", "sucursal": "TORREON", "fecha": "2026-06-02", "folio": 1884, "cliente": "GOBIERNO DEL ESTADO DE COAHUILA DE ZARAGOZA", "descripcion": "ESTUDIO DE OPINION DE SALUD PUBLICA EN EL ESTADO DE COAHUILA DE ZARAGOZA APROBACION DE SERVICIOS COAHUILA 2026", "proyecto": null, "importe": 733333.34, "total": 850666.66, "fecha_pago_raw": "2026-06-05 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-06-05", "nota_pago": null, "dias_transcurridos": 42, "folio_duplicado": true, "iva": 117333.32, "iva_atipico": false}, {"sheet": "junio", "sucursal": "TORREON", "fecha": "2026-06-02", "folio": 1885, "cliente": "GOBIERNO DEL ESTADO DE COAHUILA DE ZARAGOZA", "descripcion": "CANCELADA", "proyecto": "CANCELADA", "importe": null, "total": null, "fecha_pago_raw": "CAN 2/06", "status": "CANCELADA", "fecha_pago_final": null, "nota_pago": "CAN 2/06", "dias_transcurridos": 42, "folio_duplicado": false, "iva": null, "iva_atipico": false}, {"sheet": "junio", "sucursal": "TORREON", "fecha": "2026-06-02", "folio": 1886, "cliente": "GOBIERNO DEL ESTADO DE COAHUILA DE ZARAGOZA", "descripcion": "ESTUDIO DE OPINION DE SALUD PUBLICA EN EL ESTADO DE COAHUILA DE ZARAGOZA CONCLUSIONES COAHUILA 2026", "proyecto": null, "importe": 733333.33, "total": 850666.66, "fecha_pago_raw": "2026-06-05 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-06-05", "nota_pago": null, "dias_transcurridos": 42, "folio_duplicado": false, "iva": 117333.33, "iva_atipico": false}, {"sheet": "junio", "sucursal": "TORREON", "fecha": "2026-06-05", "folio": 1887, "cliente": "SOI MONTESSORI", "descripcion": "ESTUDIO DE MERCADO", "proyecto": "MONTESORI INM TRC ABR26", "importe": 30000, "total": 34800, "fecha_pago_raw": "2026-06-16 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-06-16", "nota_pago": null, "dias_transcurridos": 39, "folio_duplicado": false, "iva": 4800, "iva_atipico": false}, {"sheet": "junio", "sucursal": "TORREON", "fecha": "2026-06-09", "folio": 1888, "cliente": "ALIMENTOS RAPIDOS DE COAHUILA", "descripcion": "ESTUDIO DE MERCADO", "proyecto": "KALAR INM NUEVO LAREDO JUN26", "importe": 36900, "total": 42804, "fecha_pago_raw": "2026-06-15 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-06-15", "nota_pago": null, "dias_transcurridos": 35, "folio_duplicado": false, "iva": 5904, "iva_atipico": false}, {"sheet": "junio", "sucursal": "TORREON", "fecha": "2026-06-09", "folio": 1889, "cliente": "RESTAURANTES RAPIDOS DE COAHUILA", "descripcion": "ESTUDIO DE MERCADO", "proyecto": "KALAR INM NUEVO LAREDO JUN26", "importe": 36900, "total": 42804, "fecha_pago_raw": "2026-06-15 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-06-15", "nota_pago": null, "dias_transcurridos": 35, "folio_duplicado": false, "iva": 5904, "iva_atipico": false}, {"sheet": "junio", "sucursal": "TORREON", "fecha": "2026-06-10", "folio": 1890, "cliente": "LABORATORIO Y SERVICIOS MEDICOS RIVERA", "descripcion": "MYSTERY SHOPPER", "proyecto": "RIVERA ESP DGO ENE 26", "importe": 5000, "total": 5800, "fecha_pago_raw": "2026-06-16 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-06-16", "nota_pago": null, "dias_transcurridos": 34, "folio_duplicado": false, "iva": 800, "iva_atipico": false}, {"sheet": "junio", "sucursal": "TORREON", "fecha": "2026-06-15", "folio": 1891, "cliente": "JA URBAN SOLUTIONS", "descripcion": "ESTUDIO DE MERCADO PARA ANALISIS DE OFERTA,DEMANDA,PRECIOS Y VIABILIDAD DE VIVIENDAS DESARROLLADAS POR  JA URBAN SOLUTIONS", "proyecto": "ANGULAR JAUS TRC JUN26", "importe": 15000, "total": 17400, "fecha_pago_raw": "2026-06-16 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-06-16", "nota_pago": null, "dias_transcurridos": 29, "folio_duplicado": false, "iva": 2400, "iva_atipico": false}, {"sheet": "junio", "sucursal": "TORREON", "fecha": "2026-06-19", "folio": 1892, "cliente": "DESARROLLOS INMOBILIARIOS DE LA LAGUNA", "descripcion": "ESTUDIO FOTOGRAFIA Y DISEÑO DE IMAGEN EXTERIOR", "proyecto": "ANGULAR DILSA TRC JUN26", "importe": 7000, "total": 8120, "fecha_pago_raw": null, "status": "PENDIENTE", "fecha_pago_final": null, "nota_pago": null, "dias_transcurridos": 25, "folio_duplicado": false, "iva": 1120, "iva_atipico": false}, {"sheet": "junio", "sucursal": "TORREON", "fecha": "2026-06-22", "folio": 1893, "cliente": "PRODUCTOS DE CARNE DE ENGORDA", "descripcion": "ESTUDIO DE MERCADO", "proyecto": "REVUELTA TOP TRC JUN26", "importe": 118200, "total": 54112, "fecha_pago_raw": "22/06 AB", "status": "PARCIAL", "fecha_pago_final": null, "nota_pago": "22/06 AB", "dias_transcurridos": 22, "folio_duplicado": false, "iva": null, "iva_atipico": true}, {"sheet": "junio", "sucursal": "TORREON", "fecha": "2026-06-29", "folio": 1894, "cliente": "CONCESIONES INTEGRALES", "descripcion": "ESTUDIO DE MERCADO", "proyecto": null, "importe": 156000, "total": 135720, "fecha_pago_raw": "AB 26/06 45240", "status": "PARCIAL", "fecha_pago_final": null, "nota_pago": "AB 26/06 45240", "dias_transcurridos": 15, "folio_duplicado": false, "iva": null, "iva_atipico": true}, {"sheet": "junio", "sucursal": "TORREON", "fecha": "2026-06-29", "folio": 1895, "cliente": "GRUPO RECOVE & GAMA INMOBILIARIA", "descripcion": "SPOT EN PANTALLA FELIPE PESCADDOR", "proyecto": null, "importe": 5387.93, "total": 6250, "fecha_pago_raw": null, "status": "PENDIENTE", "fecha_pago_final": null, "nota_pago": null, "dias_transcurridos": 15, "folio_duplicado": false, "iva": 862.07, "iva_atipico": false}, {"sheet": "JULIO", "sucursal": "TORREON", "fecha": "2026-07-03", "folio": 1896, "cliente": "CORPORATIVO PROFESIONAL ALFA", "descripcion": "ESTUDIO DE MERCADO Y ESTRATEGIA COMERCIAL DISTRITO ALFA.", "proyecto": "ALFA CIA ETAPA 3 TRC JUL 26", "importe": 0, "total": 0, "fecha_pago_raw": "CACN 6/07", "status": "CANCELADA", "fecha_pago_final": null, "nota_pago": "CACN 6/07", "dias_transcurridos": 11, "folio_duplicado": false, "iva": 0, "iva_atipico": false}, {"sheet": "JULIO", "sucursal": "TORREON", "fecha": "2026-07-03", "folio": 1897, "cliente": "GAISAL INMOBILIARIA", "descripcion": "ESTUDIO DE MERCADO DE TERRENOS", "proyecto": "PLAZA BRISEÑO INM TRC JUL26", "importe": 45000, "total": 52200, "fecha_pago_raw": "2026-07-06 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-07-06", "nota_pago": null, "dias_transcurridos": 11, "folio_duplicado": false, "iva": 7200, "iva_atipico": false}, {"sheet": "JULIO", "sucursal": "TORREON", "fecha": "2026-07-06", "folio": 1898, "cliente": "CORPORATIVO PROFESIONAL ALFA", "descripcion": "ESTUDIO DE MERCADO Y ESTRATEGIA COMERCIAL DISTRITO ALFA.", "proyecto": "ALFA CIA ETAPA 3 TRC JUL 26", "importe": 40000, "total": 46400, "fecha_pago_raw": "2026-07-06 00:00:00", "status": "PAGADA", "fecha_pago_final": "2026-07-06", "nota_pago": null, "dias_transcurridos": 8, "folio_duplicado": false, "iva": 6400, "iva_atipico": false}, {"sheet": "JULIO", "sucursal": "TORREON", "fecha": "2026-07-06", "folio": 1899, "cliente": "CIA PRESTADORA DE SERVICIOS DE LA LAGUNA", "descripcion": "DISEÑO PARA TRIPOLAR INSTITUTO EDUARDO TRICIO GOMEZ", "proyecto": "ANGULAR EIG TRC JUL 26", "importe": 2500, "total": 2900, "fecha_pago_raw": null, "status": "PENDIENTE", "fecha_pago_final": null, "nota_pago": null, "dias_transcurridos": 8, "folio_duplicado": false, "iva": 400, "iva_atipico": false}, {"sheet": "JULIO", "sucursal": "TORREON", "fecha": "2026-07-09", "folio": 1900, "cliente": "SOI MONTESSORI", "descripcion": "ESSTUDIO DE MERCADO", "proyecto": "MONTESORI INM TRC ABR26", "importe": 30000, "total": 34800, "fecha_pago_raw": null, "status": "PENDIENTE", "fecha_pago_final": null, "nota_pago": null, "dias_transcurridos": 5, "folio_duplicado": false, "iva": 4800, "iva_atipico": false}, {"sheet": "JULIO", "sucursal": "TORREON", "fecha": "2026-07-09", "folio": 1901, "cliente": "CRECENTO REAL ESTATE", "descripcion": "ESTUDIO DE MERCADO OPEN SKIES", "proyecto": "OPENSKIES INM TRC NOV25", "importe": 145810, "total": 169139.6, "fecha_pago_raw": null, "status": "PENDIENTE", "fecha_pago_final": null, "nota_pago": null, "dias_transcurridos": 5, "folio_duplicado": false, "iva": 23329.6, "iva_atipico": false}, {"sheet": "JULIO", "sucursal": "TORREON", "fecha": "2026-07-09", "folio": 1902, "cliente": "TESORERIA MPAL DE TORREON", "descripcion": "SERVICIO PROFESIONAL PARA ELABORAR ESTUDIOS DE DIAGNOSTICO SITUACIONAL PARA EVUALAR EL POSICIONAMIENTO DE LOS PROGRAMAS MEDIANTE ENCUESTAS CUALITATIVAS Y CUANTITATIVAS PARA LA DIRECCION DE DESARROLLO SOCIAL EN BASE A CONTRATO DA/CL/DGCG/IR/001*2026  FEBREROA JUNIO 2DO  PAGO DE 5..", "proyecto": null, "importe": 381150, "total": 442134, "fecha_pago_raw": null, "status": "PENDIENTE", "fecha_pago_final": null, "nota_pago": null, "dias_transcurridos": 5, "folio_duplicado": false, "iva": 60984, "iva_atipico": false}, {"sheet": "JULIO", "sucursal": "TORREON", "fecha": "2026-07-09", "folio": 1903, "cliente": "INDIGO INMUEBLES", "descripcion": "FINIQUITO ESTUDIO DE MERCADO SEGUNDA ETAPA CEDIS  LA", "proyecto": "PREDIO MTY INM TRC ENE26", "importe": 36000, "total": 41760, "fecha_pago_raw": null, "status": "PAGADA", "fecha_pago_final": null, "nota_pago": " [confirmado saldo 0 en CARTERA DE CLIENTES]", "dias_transcurridos": 5, "folio_duplicado": false, "iva": 5760, "iva_atipico": false}, {"sheet": "JULIO", "sucursal": "TORREON", "fecha": "2026-07-09", "folio": 1904, "cliente": "MONTECARLO", "descripcion": "ESTUDIO DE MERCADO SABVIA.", "proyecto": "REVUELTA SABVIA TOP TRC JUL26", "importe": 81000, "total": 93960, "fecha_pago_raw": null, "status": "PENDIENTE", "fecha_pago_final": null, "nota_pago": null, "dias_transcurridos": 5, "folio_duplicado": false, "iva": 12960, "iva_atipico": false}, {"sheet": "JULIO", "sucursal": "TORREON", "fecha": "2026-07-09", "folio": 1905, "cliente": "MONTECARLO", "descripcion": "ESTUDIO DE MERCADO TIENDA", "proyecto": "REVUELTA TIENDA INM TRC JUL26", "importe": 55200, "total": 64032, "fecha_pago_raw": null, "status": "PENDIENTE", "fecha_pago_final": null, "nota_pago": null, "dias_transcurridos": 5, "folio_duplicado": false, "iva": 8832, "iva_atipico": false}, {"sheet": "SUCURSAL  SALTILLO", "sucursal": "SALTILLO", "fecha": "2026-02-24", "folio": 189, "cliente": "AGUAS DE SALTILLO", "descripcion": "ANTICIPO ESTUDIO DE MERCADO", "proyecto": "AGUAS TOP SLW FEB26", "importe": null, "total": null, "fecha_pago_raw": "CACN 27/02", "status": "CANCELADA", "fecha_pago_final": null, "nota_pago": "CACN 27/02", "dias_transcurridos": 140, "folio_duplicado": false, "iva": null, "iva_atipico": false}, {"sheet": "SUCURSAL  SALTILLO", "sucursal": "SALTILLO", "fecha": "2026-03-02", "folio": 190, "cliente": "AGUAS DE SALTILLO", "descripcion": "ESTUDIO DE MERCADO", "proyecto": "AGUAS TOP SLW FEB26", "importe": 95699, "total": 111010.84, "fecha_pago_raw": null, "status": "PENDIENTE", "fecha_pago_final": null, "nota_pago": null, "dias_transcurridos": 134, "folio_duplicado": false, "iva": 15311.84, "iva_atipico": false}, {"sheet": "SUCURSAL  SALTILLO", "sucursal": "SALTILLO", "fecha": "2026-03-19", "folio": 191, "cliente": "GOBIERNO DEL ESTADO DE COAHUILA DE ZARAGOZA", "descripcion": "ESTUDIO DE MERCADO DE GUBERNAMENTALES Y SERVICIOS PUBLICOS", "proyecto": "DISTLOC4 PUL TRC MAR26", "importe": 120000, "total": 139200, "fecha_pago_raw": null, "status": "PAGADA", "fecha_pago_final": null, "nota_pago": " [confirmado saldo 0 en CARTERA DE CLIENTES]", "dias_transcurridos": 117, "folio_duplicado": false, "iva": 19200, "iva_atipico": false}];
+const TODAY = "2026-07-14";
+
+// ---------- Cobranza consolidada (CARTERA DE CLIENTES 2026.xlsx) ----------
+const VIEW_A=[{"fecha": "2026-03-02", "cliente": "AGUAS SALTILLO", "folio": 190, "subtotal": 95699, "iva": 15311.84, "abono": null, "saldo_pendiente": 111010.84, "ppd_pue": "PPD", "nota_pago": null}, {"fecha": "2026-04-24", "cliente": "CENTRO EDUCATIVO BICULTURAL IMES", "folio": 1871, "subtotal": 80000, "iva": 12800, "abono": 40000, "saldo_pendiente": 52800, "ppd_pue": "PPD", "nota_pago": "AB 24/04 40"}, {"fecha": "2026-06-22", "cliente": "PRODUCTORES DE CARNE DE ENGORDA", "folio": 1893, "subtotal": 118200, "iva": 18912, "abono": 83000, "saldo_pendiente": 54112, "ppd_pue": "PPD", "nota_pago": "AB 22/06 "}, {"fecha": "2026-06-24", "cliente": "CONCESIONES INTEGRALES", "folio": 1894, "subtotal": 156000, "iva": 24960, "abono": 45240, "saldo_pendiente": 135720, "ppd_pue": "PPD", "nota_pago": "AB 26/06 45240"}, {"fecha": "2026-06-29", "cliente": "GRUPO RECOVE & GAMA INMOBILIARIA", "folio": 1895, "subtotal": 5387.93, "iva": 862.07, "abono": null, "saldo_pendiente": 6250, "ppd_pue": "PPD", "nota_pago": null}, {"fecha": "2026-07-06", "cliente": "CIA PRESTADORA DE SERVICIOS DE LA LAGUNA", "folio": 1899, "subtotal": 2500, "iva": 400, "abono": null, "saldo_pendiente": 2900, "ppd_pue": "PUE", "nota_pago": null}, {"fecha": "2026-07-09", "cliente": "SOI MONTESSORI", "folio": 1900, "subtotal": 30000, "iva": 4800, "abono": null, "saldo_pendiente": 34800, "ppd_pue": "PUE", "nota_pago": null}, {"fecha": "2026-07-09", "cliente": "CRECENTO REAL ESTATE", "folio": 1901, "subtotal": 145810, "iva": 23329.6, "abono": null, "saldo_pendiente": 169139.6, "ppd_pue": "PPD", "nota_pago": "OPEN"}, {"fecha": "2026-07-09", "cliente": "TESORERIA MPAL DE TORREON", "folio": 1902, "subtotal": 381150, "iva": 60984, "abono": null, "saldo_pendiente": 442134, "ppd_pue": "PPD", "nota_pago": null}, {"fecha": "2026-07-09", "cliente": "INDIGO INMUEBLES", "folio": 1903, "subtotal": 36000, "iva": 5760, "abono": null, "saldo_pendiente": 41760, "ppd_pue": "PPD", "nota_pago": null}, {"fecha": "2026-07-09", "cliente": "MONTECARLO", "folio": 1904, "subtotal": 81000, "iva": 12960, "abono": null, "saldo_pendiente": 93960, "ppd_pue": "PPD", "nota_pago": null}, {"fecha": "2026-07-09", "cliente": "MONTECARLO", "folio": 1905, "subtotal": 55200, "iva": 8832, "abono": null, "saldo_pendiente": 64032, "ppd_pue": "PPD", "nota_pago": null}];
+const VIEW_B=[{"cliente": "LABORATORIO Y SERVICIOS MEDICOS RIVERA", "proyecto_valor": 30000, "nombre_proyecto": "RIVERA ESP DGO ENE26", "fecha_ultima": "2026-06-16", "ultimo_pago_nota": "PAG 16/06", "saldo_pendiente": 5000, "folios_en_bloque": [1842, 1849, 1858, 1877, 1890], "pendiente_de_facturar": false, "anticipos_por_folio": [[1842, 5000], [1849, 5000], [1858, 5000], [1877, 5000], [1890, 5000]], "dias_desde_ultimo_mov": 28, "revisar": false}, {"cliente": "SISTEMA MUNICIPAL DE AGUAS Y SANEAMIENTO DE TORREON COAHUILA", "proyecto_valor": 79000, "nombre_proyecto": "SIMAS PUL TRC FEB 26", "fecha_ultima": null, "ultimo_pago_nota": null, "saldo_pendiente": 79000, "folios_en_bloque": [], "pendiente_de_facturar": false, "anticipos_por_folio": [], "dias_desde_ultimo_mov": null, "revisar": false}, {"cliente": "GRUAS Y SERVICIOS DE LA LAGUNA", "proyecto_valor": 200000, "nombre_proyecto": "2 PREDIO INM TRC MAR26", "fecha_ultima": "2026-03-20", "ultimo_pago_nota": "PAG 20/03", "saldo_pendiente": 130000, "folios_en_bloque": [1852], "pendiente_de_facturar": false, "anticipos_por_folio": [[1852, 70000]], "dias_desde_ultimo_mov": 116, "revisar": false}, {"cliente": "ATENCION GERIATRICA DE LA LAGUNA", "proyecto_valor": 48000, "nombre_proyecto": "CLINICA GERIATREE  CDMX TRC ABR26", "fecha_ultima": "2026-04-09", "ultimo_pago_nota": "PAGO9/04", "saldo_pendiente": 19200, "folios_en_bloque": [1862], "pendiente_de_facturar": false, "anticipos_por_folio": [[1862, 28800]], "dias_desde_ultimo_mov": 96, "revisar": false}, {"cliente": "TESORERIA MPAL DE TORREON", "proyecto_valor": 1905750, "nombre_proyecto": "TORREON IGUALA PUL TRC 2026", "fecha_ultima": "2026-07-07", "ultimo_pago_nota": "PAGO 25/05", "saldo_pendiente": 762300, "folios_en_bloque": [1866, 1878, 1902], "pendiente_de_facturar": false, "anticipos_por_folio": [[1866, 381150], [1878, 381150], [1902, 381150]], "dias_desde_ultimo_mov": 7, "revisar": false}, {"cliente": "SOYUG", "proyecto_valor": 90800, "nombre_proyecto": "CONSULTORIOS INM  TRC ABR26", "fecha_ultima": "2026-04-15", "ultimo_pago_nota": "PAG 15/04", "saldo_pendiente": 68100, "folios_en_bloque": [1865], "pendiente_de_facturar": false, "anticipos_por_folio": [[1865, 22700]], "dias_desde_ultimo_mov": 90, "revisar": false}, {"cliente": "LUIS ALBERTO HOYOS", "proyecto_valor": null, "nombre_proyecto": null, "fecha_ultima": "2026-05-13", "ultimo_pago_nota": "pag 13/05", "saldo_pendiente": 9479.309999999998, "folios_en_bloque": [1879], "pendiente_de_facturar": false, "anticipos_por_folio": [], "dias_desde_ultimo_mov": 62, "revisar": false}, {"cliente": "CONCESIONES INTEGRALES", "proyecto_valor": 156000, "nombre_proyecto": "AGUA PUEBLA TOP TRC ABR 26", "fecha_ultima": "2026-06-26", "ultimo_pago_nota": "AB 26/06 ", "saldo_pendiente": 117000, "folios_en_bloque": [1894], "pendiente_de_facturar": false, "anticipos_por_folio": [[1894, 39000]], "dias_desde_ultimo_mov": 18, "revisar": true}, {"cliente": "CORPORATIVO PROFESIONAL ALFA", "proyecto_valor": 120000, "nombre_proyecto": "ALFA CIA ETAPA 3 TRC JUL 26", "fecha_ultima": "2026-07-06", "ultimo_pago_nota": "PAGO 6/07", "saldo_pendiente": 80000, "folios_en_bloque": [1898], "pendiente_de_facturar": false, "anticipos_por_folio": [[1898, 40000]], "dias_desde_ultimo_mov": 8, "revisar": false}, {"cliente": "GAISAL INMOBILIARIA", "proyecto_valor": 135000, "nombre_proyecto": "PLAZA BRISEÑO INM TRC JUL26", "fecha_ultima": "2026-07-06", "ultimo_pago_nota": "PAGO 6/07", "saldo_pendiente": 90000, "folios_en_bloque": [1897], "pendiente_de_facturar": false, "anticipos_por_folio": [[1897, 45000]], "dias_desde_ultimo_mov": 8, "revisar": false}];
+const DISCREPANCIAS=[{"tipo": "INFO", "detalle": "Proyecto \"TILAPIA TOP TRC MAR26\" ($16,400 ya recibidos) tiene nota \"PENDIENTE DE HACER FACTURA\" - es un pendiente fiscal, no de cobranza."}, {"tipo": "REVISAR", "detalle": "Cliente CONCESIONES INTEGRALES, proyecto \"AGUA PUEBLA TOP TRC ABR 26\": el anticipo que registra la hoja CLIENTES no coincide con el importe de esa factura en FACTURACION. El saldo de $117,000 que se muestra podria estar mal calculado - revisar a mano."}];
+
+// ---------- helpers ----------
+const fmtMoney = n => n == null ? '—' : n.toLocaleString('es-MX', {style:'currency', currency:'MXN', maximumFractionDigits:0});
+const fmtMoneyShort = n => n == null ? '—' : (n/1000).toLocaleString('es-MX',{maximumFractionDigits:0}) + 'k';
+
+const MES_ORDER = ['ENERO','FEBRERO','marzo','abril','mayo','junio','JULIO','AGOSTO','SEPT','OCT','nov','dic','SUCURSAL  SALTILLO','SUCURSAL MONTERREY'];
+const MES_LABEL = {ENERO:'Ene',FEBRERO:'Feb',marzo:'Mar',abril:'Abr',mayo:'May',junio:'Jun',JULIO:'Jul',AGOSTO:'Ago',SEPT:'Sep',OCT:'Oct',nov:'Nov',dic:'Dic'};
+
+DATA.forEach(r => {
+  r.fecha_pago_display = r.status === 'PAGADA' ? (r.fecha_pago_final || r.nota_pago || '') :
+                          (r.nota_pago || (r.status === 'PENDIENTE' ? '' : ''));
+
+  // IVA = total - importe, tal como están capturados en el Excel (no se recalcula el total).
+  // Si la relación no se acerca a 16% (o falta el total), no se calcula IVA para no inventar un dato -
+  // se marca como atípica para revisión manual (típicamente facturas con abono parcial donde el
+  // campo TOTAL del Excel no refleja el total real de la factura).
+  const imp = typeof r.importe === 'number' ? r.importe : null;
+  const tot = typeof r.total === 'number' ? r.total : null;
+  if (imp !== null && tot !== null && imp > 0) {
+    const ratio = tot / imp;
+    if (ratio >= 1.10 && ratio <= 1.22) {
+      r.iva = Math.round((tot - imp) * 100) / 100;
+      r.iva_atipico = false;
+    } else {
+      r.iva = null;
+      r.iva_atipico = true;
+    }
+  } else if (imp === 0 && tot === 0) {
+    r.iva = 0;
+    r.iva_atipico = false;
+  } else {
+    r.iva = null;
+    r.iva_atipico = false;
+  }
+});
+
+// ---------- KPIs ----------
+const sum = (arr, f) => arr.reduce((a,r) => a + (typeof r.total === 'number' ? r.total : 0), 0);
+const sumImporte = arr => arr.reduce((a,r) => a + (typeof r.importe === 'number' ? r.importe : 0), 0);
+const sumIva = arr => arr.reduce((a,r) => a + (typeof r.iva === 'number' ? r.iva : 0), 0);
+const withTotal = DATA.filter(r => typeof r.total === 'number');
+const facturado = sum(withTotal);
+const pagado = sum(withTotal.filter(r => r.status === 'PAGADA'));
+const pendiente = sum(withTotal.filter(r => r.status === 'PENDIENTE'));
+const parcial = sum(withTotal.filter(r => r.status === 'PARCIAL'));
+const nPendiente = DATA.filter(r => r.status === 'PENDIENTE').length;
+const nParcial = DATA.filter(r => r.status === 'PARCIAL').length;
+const nCancelada = DATA.filter(r => r.status === 'CANCELADA').length;
+const nPagada = DATA.filter(r => r.status === 'PAGADA').length;
+const nAtipicas = DATA.filter(r => r.iva_atipico).length;
+
+document.getElementById('kpiFacturado').textContent = fmtMoney(facturado);
+document.getElementById('kpiFacturadoN').textContent = fmtMoney(sumImporte(withTotal)) + ' sin IVA + ' + fmtMoney(sumIva(withTotal)) + ' IVA';
+document.getElementById('kpiPagado').textContent = fmtMoney(pagado);
+document.getElementById('kpiPagadoPct').textContent = fmtMoney(sumImporte(withTotal.filter(r=>r.status==='PAGADA'))) + ' sin IVA · ' + Math.round(pagado/facturado*100) + '% del total';
+document.getElementById('kpiPendiente').textContent = fmtMoney(pendiente);
+document.getElementById('kpiPendienteN').textContent = fmtMoney(sumImporte(withTotal.filter(r=>r.status==='PENDIENTE'))) + ' sin IVA · ' + nPendiente + ' facturas';
+document.getElementById('kpiParcial').textContent = fmtMoney(parcial);
+document.getElementById('kpiParcialN').textContent = nParcial + ' facturas con abono, saldo abierto' + (nAtipicas ? ' · ' + nAtipicas + ' con IVA sin calcular (revisar Excel)' : '');
+document.getElementById('kpiCancelado').textContent = nCancelada;
+
+// ---------- chart por mes (aislado: si el CDN de Chart.js no carga, no debe tumbar el resto del dashboard) ----------
+const mesesConDatos = MES_ORDER.filter(m => DATA.some(r => r.sheet === m) && MES_LABEL[m]);
+try {
+  const factByMes = mesesConDatos.map(m => sum(DATA.filter(r => r.sheet === m && typeof r.total === 'number')));
+  const pagByMes = mesesConDatos.map(m => sum(DATA.filter(r => r.sheet === m && r.status === 'PAGADA')));
+
+  if (typeof Chart === 'undefined') throw new Error('Chart.js no cargó (sin conexión al CDN)');
+
+  new Chart(document.getElementById('chartMes'), {
+    type: 'bar',
+    data: {
+      labels: mesesConDatos.map(m => MES_LABEL[m]),
+      datasets: [
+        { label: 'Facturado', data: factByMes, backgroundColor: 'rgba(96,165,250,.35)', borderRadius: 4 },
+        { label: 'Cobrado', data: pagByMes, backgroundColor: 'rgba(52,211,153,.7)', borderRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { labels: { color: '#93a0bd' } } },
+      scales: {
+        x: { ticks: { color: '#93a0bd' }, grid: { display:false } },
+        y: { ticks: { color: '#93a0bd', callback: v => fmtMoneyShort(v) }, grid: { color: '#2a3350' } }
+      }
+    }
+  });
+} catch (e) {
+  console.warn('Gráfica no disponible:', e.message);
+  const canvas = document.getElementById('chartMes');
+  if (canvas) canvas.outerHTML = '<div style="color:var(--muted);font-size:13px;padding:20px 0;">No se pudo cargar la gráfica (sin conexión a internet para Chart.js). El resto del dashboard funciona normal.</div>';
+}
+
+// ---------- aging de pendientes ----------
+const abiertas = DATA.filter(r => r.status === 'PENDIENTE' || r.status === 'PARCIAL');
+const buckets = [
+  {label:'0-15 días', min:0, max:15, color:'#60a5fa'},
+  {label:'16-30 días', min:16, max:30, color:'#fbbf24'},
+  {label:'31-60 días', min:31, max:60, color:'#f97316'},
+  {label:'60+ días', min:61, max:Infinity, color:'#f87171'},
+];
+const agingBox = document.getElementById('agingBox');
+const maxBucket = Math.max(...buckets.map(b => sum(abiertas.filter(r => r.dias_transcurridos >= b.min && r.dias_transcurridos <= b.max))), 1);
+buckets.forEach(b => {
+  const items = abiertas.filter(r => r.dias_transcurridos >= b.min && r.dias_transcurridos <= b.max);
+  const total = sum(items);
+  const pct = Math.max(4, Math.round(total / maxBucket * 100));
+  const row = document.createElement('div');
+  row.className = 'aging-row';
+  row.innerHTML = `<div class="aging-label">${b.label}</div><div class="aging-bar"><div style="width:${pct}%;background:${b.color}"></div></div><div class="aging-amount">${fmtMoney(total)} <span style="color:var(--muted);font-weight:400">(${items.length})</span></div>`;
+  agingBox.appendChild(row);
+});
+
+// ---------- tabla ----------
+let currentStatus = 'ALL';
+let currentMes = 'ALL';
+let currentSucursal = 'ALL';
+let currentSearch = '';
+let sortKey = 'fecha';
+let sortDir = -1;
+
+const mesFilterEl = document.getElementById('mesFilter');
+mesesConDatos.forEach(m => {
+  const opt = document.createElement('option');
+  opt.value = m; opt.textContent = MES_LABEL[m] || m;
+  mesFilterEl.appendChild(opt);
+});
+const sucursales = [...new Set(DATA.map(r => r.sucursal))];
+const sucFilterEl = document.getElementById('sucursalFilter');
+sucursales.forEach(s => {
+  const opt = document.createElement('option');
+  opt.value = s; opt.textContent = s;
+  sucFilterEl.appendChild(opt);
+});
+
+function render() {
+  let rows = DATA.filter(r => {
+    if (currentStatus !== 'ALL' && r.status !== currentStatus) return false;
+    if (currentMes !== 'ALL' && r.sheet !== currentMes) return false;
+    if (currentSucursal !== 'ALL' && r.sucursal !== currentSucursal) return false;
+    if (currentSearch) {
+      const hay = (r.cliente||'') + ' ' + (r.folio||'') + ' ' + (r.proyecto||'') + ' ' + (r.descripcion||'');
+      if (!hay.toLowerCase().includes(currentSearch.toLowerCase())) return false;
+    }
+    return true;
+  });
+
+  rows.sort((a,b) => {
+    let va = a[sortKey], vb = b[sortKey];
+    if (va == null) va = sortDir === 1 ? Infinity : -Infinity;
+    if (vb == null) vb = sortDir === 1 ? Infinity : -Infinity;
+    if (va < vb) return -1 * sortDir;
+    if (va > vb) return 1 * sortDir;
+    return 0;
+  });
+
+  document.getElementById('rowCount').textContent = '(' + rows.length + ' de ' + DATA.length + ')';
+
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = rows.map(r => {
+    let diasClass = '';
+    if ((r.status === 'PENDIENTE' || r.status === 'PARCIAL')) {
+      if (r.dias_transcurridos > 60) diasClass = 'dias-critico';
+      else if (r.dias_transcurridos > 30) diasClass = 'dias-alerta';
+    }
+    return `<tr>
+      <td>${r.fecha || '—'}</td>
+      <td>${r.folio ?? '—'}</td>
+      <td>${r.cliente || '—'}</td>
+      <td class="nota">${r.proyecto || '—'}</td>
+      <td>${r.sucursal}</td>
+      <td class="num">${fmtMoney(r.importe)}</td>
+      <td class="num">${r.iva_atipico ? '<span class="dias-alerta" title="Relación importe/total atípica en el Excel, revisar">revisar</span>' : fmtMoney(r.iva)}</td>
+      <td class="num">${fmtMoney(r.total)}</td>
+      <td class="num ${diasClass}">${r.dias_transcurridos ?? '—'}</td>
+      <td><span class="pill ${r.status}">${r.status}</span></td>
+      <td class="nota">${r.fecha_pago_display || (r.status==='PENDIENTE' ? 'sin pago registrado' : '—')}</td>
+    </tr>`;
+  }).join('');
+}
+
+document.querySelectorAll('.tag-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentStatus = btn.dataset.status;
+    render();
+  });
+});
+mesFilterEl.addEventListener('change', e => { currentMes = e.target.value; render(); });
+sucFilterEl.addEventListener('change', e => { currentSucursal = e.target.value; render(); });
+document.getElementById('searchBox').addEventListener('input', e => { currentSearch = e.target.value; render(); });
+document.querySelectorAll('thead th').forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.dataset.key;
+    if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = 1; }
+    render();
+  });
+});
+
+render();
+
+// ---------- Cobranza consolidada ----------
+try {
+  const totalA = VIEW_A.reduce((a,r) => a + r.saldo_pendiente, 0);
+  const totalB = VIEW_B.reduce((a,r) => a + r.saldo_pendiente, 0);
+  document.getElementById('kpiCobranzaA').textContent = fmtMoney(totalA);
+  document.getElementById('kpiCobranzaAN').textContent = VIEW_A.length + ' facturas ya emitidas, saldo con IVA';
+  document.getElementById('kpiCobranzaB').textContent = fmtMoney(totalB);
+  document.getElementById('kpiCobranzaBN').textContent = VIEW_B.length + ' proyectos, saldo sin IVA (falta facturar)';
+
+  const combinados = [
+    ...VIEW_A.map(r => ({
+      cliente: r.cliente,
+      proyecto: 'Folio ' + r.folio,
+      origen: 'Facturado',
+      saldo: r.saldo_pendiente,
+      fecha: r.fecha,
+      dias: Math.round((new Date(TODAY) - new Date(r.fecha)) / 86400000)
+    })),
+    ...VIEW_B.map(r => ({
+      cliente: r.cliente,
+      proyecto: r.nombre_proyecto,
+      origen: 'Sin facturar',
+      saldo: r.saldo_pendiente,
+      fecha: r.fecha_ultima,
+      dias: r.dias_desde_ultimo_mov
+    }))
+  ].sort((a,b) => (b.dias ?? -1) - (a.dias ?? -1));
+
+  document.getElementById('cobranzaBody').innerHTML = combinados.map(r => {
+    const diasClass = r.dias > 90 ? 'dias-critico' : (r.dias > 45 ? 'dias-alerta' : '');
+    return `<tr>
+      <td>${r.cliente}</td>
+      <td class="nota">${r.proyecto}</td>
+      <td><span class="pill ${r.origen === 'Facturado' ? 'PENDIENTE' : 'PARCIAL'}">${r.origen}</span></td>
+      <td class="num">${fmtMoney(r.saldo)}</td>
+      <td class="num">${r.fecha || '—'}</td>
+      <td class="num ${diasClass}">${r.dias ?? '—'}</td>
+    </tr>`;
+  }).join('');
+
+  const tipoColor = { CORRECCION: 'var(--green)', REVISAR: 'var(--amber)', INFO: 'var(--blue)' };
+  document.getElementById('discrepanciasBox').innerHTML = DISCREPANCIAS.map(d => `
+    <div style="padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:1.5;">
+      <span class="pill" style="background:${tipoColor[d.tipo]}22;color:${tipoColor[d.tipo]};margin-right:8px;">${d.tipo}</span>${d.detalle}
+    </div>`).join('');
+} catch (e) {
+  console.warn('Cobranza consolidada no se pudo renderizar:', e.message);
+}
+</script>
+</body>
+</html>
