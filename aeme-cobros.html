@@ -566,7 +566,8 @@ function estClass(e){
 
 function cards(){
   const g=document.getElementById('grid');
-  let list=af==='todos'?recs:recs.filter(r=>(r.fields[F.t]||'')===af);
+  let list=(af==='todos'?recs:recs.filter(r=>(r.fields[F.t]||'')===af))
+    .filter(r=>!r.fields[F.done]);
   if(!list.length){g.innerHTML='<div class="lstate">Sin proyectos en esta categoría.</div>';return;}
   g.innerHTML=list.map(r=>{
     const f=r.fields;
