@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -10,8 +11,6 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:var(--bg);color:var(--text);font-family:var(--font-mono);min-height:100vh;}
 header{position:sticky;top:0;z-index:100;background:rgba(13,15,20,0.97);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;}
-.logo{font-family:var(--font-head);font-weight:800;font-size:1rem;letter-spacing:.15em;color:var(--accent);}
-.logo span{color:var(--text2);font-weight:400;}
 .hright{display:flex;align-items:center;gap:.75rem;}
 .sdot{width:8px;height:8px;border-radius:50%;background:var(--text3);transition:background .3s;}
 .sdot.on{background:var(--accent2);}.sdot.err{background:var(--accent3);}
@@ -38,10 +37,9 @@ main{padding:1.5rem 1.5rem 4rem;max-width:1400px;margin:0 auto;}
 .hero-pct-wrap{position:relative;width:110px;height:110px;flex-shrink:0;}
 .hero-gauge{width:110px;height:110px;}
 .hero-pct-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
-.hero-pct-label span{font-family:var(--font-head);font-size:1.3rem;font-weight:800;color:var(--accent);}
+.hero-pct-label span{font-family:var(--font-head);font-size:1.3rem;font-weight:800;}
 .hero-desglose{display:flex;flex-direction:column;gap:.5rem;}
 .hd{font-size:.68rem;color:var(--text3);display:flex;align-items:center;gap:.4rem;}
-.hdl{font-size:.7rem;}
 .hdv{margin-left:auto;color:var(--text);font-weight:600;padding-left:.8rem;}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:1.5rem;}
 .kpi{background:var(--surface);padding:1.1rem 1.4rem;}
@@ -73,16 +71,14 @@ main{padding:1.5rem 1.5rem 4rem;max-width:1400px;margin:0 auto;}
 .tab:hover{color:var(--text2);}.tab.active{background:var(--surface2);color:var(--text);}
 .sp{flex:1;}
 #btnAdd{background:var(--accent);border:none;color:#000;font-family:var(--font-mono);font-size:.7rem;font-weight:600;letter-spacing:.08em;padding:.42rem 1.1rem;cursor:pointer;border-radius:4px;text-transform:uppercase;}
-#btnAdd:hover{background:#f5c84a;}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:1rem;}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color .2s,transform .2s;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color .2s,transform .2s;cursor:pointer;}
 .card:hover{border-color:var(--text3);transform:translateY(-2px);}
 .cstripe{height:3px;}
 .cstripe.o{background:var(--accent2);}.cstripe.v{background:var(--accent4);}.cstripe.p{background:var(--accent);}
 .cbody{padding:.9rem 1.1rem;}
 .cheader{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.7rem;}
-.cname{font-family:var(--font-head);font-size:.88rem;font-weight:700;line-height:1.25;cursor:pointer;}
-.cname:hover{color:var(--accent);}
+.cname{font-family:var(--font-head);font-size:.88rem;font-weight:700;line-height:1.25;}
 .ctag{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;padding:.18rem .5rem;border-radius:3px;white-space:nowrap;margin-left:.4rem;flex-shrink:0;}
 .ctag.o{background:#3ecf8e18;color:var(--accent2);border:1px solid #3ecf8e30;}
 .ctag.v{background:#6c8fff18;color:var(--accent4);border:1px solid #6c8fff30;}
@@ -126,7 +122,6 @@ main{padding:1.5rem 1.5rem 4rem;max-width:1400px;margin:0 auto;}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
 .frow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;}
 .fg{display:flex;flex-direction:column;gap:.32rem;}
-.fg.full{grid-column:1/-1;}
 label{font-size:.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;}
 input,select,textarea{background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:.78rem;padding:.48rem .72rem;border-radius:5px;outline:none;transition:border-color .15s;width:100%;}
 input:focus,select:focus,textarea:focus{border-color:var(--accent);}
@@ -134,8 +129,8 @@ input[type="date"]{color-scheme:dark;}
 select option{background:var(--surface);}
 textarea{resize:vertical;min-height:60px;}
 .mfoot{padding:.85rem 1.4rem;border-top:1px solid var(--border);display:flex;gap:.6rem;align-items:center;}
-.bsec{background:transparent;border:1px solid var(--border);color:var(--text2);font-family:var(--font-mono);font-size:.7rem;letter-spacing:.06em;padding:.42rem 1rem;cursor:pointer;border-radius:4px;text-transform:uppercase;}
-.bpri{background:var(--accent);border:none;color:#000;font-family:var(--font-mono);font-size:.7rem;font-weight:600;letter-spacing:.08em;padding:.42rem 1.2rem;cursor:pointer;border-radius:4px;text-transform:uppercase;}
+.bsec{background:transparent;border:1px solid var(--border);color:var(--text2);font-family:var(--font-mono);font-size:.7rem;padding:.42rem 1rem;cursor:pointer;border-radius:4px;text-transform:uppercase;}
+.bpri{background:var(--accent);border:none;color:#000;font-family:var(--font-mono);font-size:.7rem;font-weight:600;padding:.42rem 1.2rem;cursor:pointer;border-radius:4px;text-transform:uppercase;}
 .bpri:disabled{opacity:.5;cursor:not-allowed;}
 .bdng{background:transparent;border:1px solid #e85d5d44;color:var(--accent3);font-family:var(--font-mono);font-size:.7rem;padding:.42rem .85rem;cursor:pointer;border-radius:4px;text-transform:uppercase;}
 .pago-list{display:grid;gap:.5rem;max-height:280px;overflow-y:auto;}
@@ -145,7 +140,7 @@ textarea{resize:vertical;min-height:60px;}
 .pago-fecha-txt{font-size:.62rem;color:var(--text3);}
 .pago-monto-txt{font-size:.85rem;font-weight:600;color:var(--accent2);white-space:nowrap;}
 .pago-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:.9rem;padding:.1rem .3rem;border-radius:3px;}
-.pago-del:hover{color:var(--accent3);background:#e85d5d18;}
+.pago-del:hover{color:var(--accent3);}
 .pago-form{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.8rem;}
 .pago-form-title{font-size:.6rem;color:var(--accent);text-transform:uppercase;letter-spacing:.12em;margin-bottom:.6rem;}
 .pago-total-row{display:flex;justify-content:space-between;align-items:center;padding:.5rem .6rem;background:var(--surface2);border-radius:5px;margin-top:.5rem;}
@@ -165,13 +160,13 @@ textarea{resize:vertical;min-height:60px;}
 </head>
 <body>
 <header>
-  <div class="logo">
-  <svg height="28" viewBox="0 0 240 28" xmlns="http://www.w3.org/2000/svg" style="display:block">
-    <text x="0" y="22" font-family="Syne,sans-serif" font-size="22" font-weight="700" fill="#888" letter-spacing="-0.5">aeme</text>
-    <text x="72" y="22" font-family="Syne,sans-serif" font-size="24" font-weight="900" fill="#f0b429">!</text>
-    <text x="86" y="22" font-family="Syne,sans-serif" font-size="22" font-weight="800" fill="#6c8fff" letter-spacing="1">Cobros</text>
-  </svg>
-</div>
+  <div>
+    <svg height="28" viewBox="0 0 240 28" xmlns="http://www.w3.org/2000/svg" style="display:block">
+      <text x="0" y="22" font-family="Syne,sans-serif" font-size="22" font-weight="700" fill="#888" letter-spacing="-0.5">aeme</text>
+      <text x="72" y="22" font-family="Syne,sans-serif" font-size="24" font-weight="900" fill="#f0b429">!</text>
+      <text x="86" y="22" font-family="Syne,sans-serif" font-size="22" font-weight="800" fill="#6c8fff" letter-spacing="1">Cobros</text>
+    </svg>
+  </div>
   <div class="hright">
     <div class="sdot" id="sdot"></div>
     <span class="slabel" id="slabel">Sin conectar</span>
@@ -187,11 +182,11 @@ textarea{resize:vertical;min-height:60px;}
   <div class="kp-hint">Token en <a href="https://airtable.com/create/tokens" target="_blank">airtable.com/create/tokens</a></div>
 </div>
 <main>
-  <div class="hero-mes" id="hero-mes">
+  <div class="hero-mes">
     <div class="hero-left">
-      <div class="hero-label">Cobrado en <span id="hero-mes-nombre">—</span></div>
+      <div class="hero-label">Cobrado acumulado</div>
       <div class="hero-num" id="hero-num">—</div>
-      <div class="hero-sub">de <strong>$999,333</strong> meta mensual total</div>
+      <div class="hero-sub">de <strong>$999,333</strong> meta total</div>
     </div>
     <div class="hero-right">
       <div class="hero-pct-wrap">
@@ -204,17 +199,17 @@ textarea{resize:vertical;min-height:60px;}
         <div class="hero-pct-label"><span id="hero-pct">0%</span></div>
       </div>
       <div class="hero-desglose">
-        <div class="hd"><span class="hdl" style="color:var(--accent2)">●</span> Operados <span class="hdv" id="hd-op">—</span></div>
-        <div class="hd"><span class="hdl" style="color:var(--accent4)">●</span> Venta Nueva <span class="hdv" id="hd-vn">—</span></div>
-        <div class="hd"><span class="hdl" style="color:var(--accent)">●</span> De Pulso <span class="hdv" id="hd-pu">—</span></div>
+        <div class="hd"><span style="color:var(--accent2)">●</span> Operados <span class="hdv" id="hd-op">—</span></div>
+        <div class="hd"><span style="color:var(--accent4)">●</span> Venta Nueva <span class="hdv" id="hd-vn">—</span></div>
+        <div class="hd"><span style="color:var(--accent)">●</span> De Pulso <span class="hdv" id="hd-pu">—</span></div>
       </div>
     </div>
   </div>
   <div class="kpis">
-    <div class="kpi"><div class="klabel">Valor Total Portafolio</div><div class="kval y" id="k1">—</div><div class="ksub">proyectos en base</div></div>
-    <div class="kpi"><div class="klabel">Cobrado este mes</div><div class="kval g" id="k2">—</div><div class="ksub">anticipos + pagos</div></div>
+    <div class="kpi"><div class="klabel">Valor Total Portafolio</div><div class="kval y" id="k1">—</div><div class="ksub">todos los proyectos</div></div>
+    <div class="kpi"><div class="klabel">Total Cobrado</div><div class="kval g" id="k2">—</div><div class="ksub">anticipo + pagos</div></div>
     <div class="kpi"><div class="klabel">Total Proyectos</div><div class="kval b" id="k3">—</div><div class="ksub">registros activos</div></div>
-    <div class="kpi"><div class="klabel">Saldo por Cobrar</div><div class="kval r" id="k4">—</div><div class="ksub">total pendiente</div></div>
+    <div class="kpi"><div class="klabel">Saldo por Cobrar</div><div class="kval r" id="k4">—</div><div class="ksub">pendiente total</div></div>
   </div>
   <div class="section-title" id="metas-title">Metas</div>
   <div class="metas-grid" id="metas-grid"></div>
@@ -284,7 +279,7 @@ textarea{resize:vertical;min-height:60px;}
       <div class="saldo-calc" id="saldo-calc"></div>
       <div class="msect">Historial de pagos</div>
       <div class="pago-list" id="pago-list"></div>
-      <div class="pago-total-row"><span class="ptl">Total pagos registrados</span><span class="ptv" id="pago-total">$0</span></div>
+      <div class="pago-total-row"><span class="ptl">Total pagos</span><span class="ptv" id="pago-total">$0</span></div>
       <div class="pago-form">
         <div class="pago-form-title">+ Registrar nuevo pago</div>
         <div class="frow3">
@@ -293,7 +288,7 @@ textarea{resize:vertical;min-height:60px;}
         </div>
         <div class="frow" style="margin-top:.6rem">
           <div class="fg"><label>Monto</label><input type="number" id="np-monto" placeholder="0.00"></div>
-          <div class="fg" style="justify-content:flex-end;padding-top:1.2rem"><button class="bpri" onclick="agregarPago()">Agregar pago</button></div>
+          <div class="fg" style="justify-content:flex-end;padding-top:1.2rem"><button class="bpri" onclick="agregarPago()">Agregar</button></div>
         </div>
       </div>
     </div>
@@ -338,30 +333,22 @@ function fmtDate(d){
   if(!d)return '';
   try{return new Date(d+'T12:00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});}catch(e){return d;}
 }
-function mesActual(){const n=new Date();return{y:n.getFullYear(),m:n.getMonth()};}
-function esMes(fechaStr,y,m){
-  if(!fechaStr)return false;
-  try{const d=new Date(fechaStr+'T12:00:00');return d.getFullYear()===y&&d.getMonth()===m;}catch(e){return false;}
-}
 function parsePagos(raw){if(!raw)return[];try{return JSON.parse(raw);}catch(e){return[];}}
 function serPagos(arr){return JSON.stringify(arr);}
-function pagosMes(r,y,m){
-  return parsePagos(r.fields[F.pagos]||'').filter(p=>esMes(p.fecha,y,m)).reduce((s,p)=>s+(Number(p.monto)||0),0);
-}
-function pagosTotal(r){
-  return parsePagos(r.fields[F.pagos]||'').reduce((s,p)=>s+(Number(p.monto)||0),0);
-}
+function pagosTotal(r){return parsePagos(r.fields[F.pagos]||'').reduce((s,p)=>s+(Number(p.monto)||0),0);}
 function saldoReal(r){
   return (Number(r.fields[F.vt])||0)-(Number(r.fields[F.ant])||0)-pagosTotal(r);
 }
-function cobradoEnMes(r,y,m){
+
+// Cobrado acumulado por tipo (sin filtro de fecha)
+function cobrado(r){
   const tipo=r.fields[F.t]||'';
-  const antMes=esMes(r.fields[F.fecha],y,m)?Number(r.fields[F.ant])||0:0;
-  const pagsMes=pagosMes(r,y,m);
-  if(tipo==='Venta Nueva') return antMes;
-  if(tipo==='Proyectos Operados') return pagsMes;
-  if(tipo==='De Pulso') return antMes+pagsMes;
-  return antMes+pagsMes;
+  const ant=Number(r.fields[F.ant])||0;
+  const pags=pagosTotal(r);
+  if(tipo==='Venta Nueva') return ant;
+  if(tipo==='Proyectos Operados') return ant+pags;
+  if(tipo==='De Pulso') return ant+pags;
+  return ant+pags;
 }
 
 async function load(){
@@ -383,24 +370,23 @@ async function load(){
 }
 
 function kpis(){
-  const {y,m}=mesActual();
+  const now=new Date();
   const activos=recs.filter(r=>!r.fields[F.done]);
   const tot=recs.reduce((s,r)=>s+(Number(r.fields[F.vt])||0),0);
-  const cobMes=activos.reduce((s,r)=>s+cobradoEnMes(r,y,m),0);
+  const cob=activos.reduce((s,r)=>s+cobrado(r),0);
   const sal=activos.reduce((s,r)=>s+Math.max(0,saldoReal(r)),0);
-  const op=activos.filter(r=>r.fields[F.t]==='Proyectos Operados').reduce((s,r)=>s+cobradoEnMes(r,y,m),0);
-  const vn=activos.filter(r=>r.fields[F.t]==='Venta Nueva').reduce((s,r)=>s+cobradoEnMes(r,y,m),0);
-  const pu=activos.filter(r=>r.fields[F.t]==='De Pulso').reduce((s,r)=>s+cobradoEnMes(r,y,m),0);
+  const op=activos.filter(r=>r.fields[F.t]==='Proyectos Operados').reduce((s,r)=>s+cobrado(r),0);
+  const vn=activos.filter(r=>r.fields[F.t]==='Venta Nueva').reduce((s,r)=>s+cobrado(r),0);
+  const pu=activos.filter(r=>r.fields[F.t]==='De Pulso').reduce((s,r)=>s+cobrado(r),0);
   document.getElementById('k1').textContent=fmt(tot);
-  document.getElementById('k2').textContent=fmt(cobMes);
+  document.getElementById('k2').textContent=fmt(cob);
   document.getElementById('k3').textContent=activos.length;
   document.getElementById('k4').textContent=fmt(sal);
-  const pct=Math.min(100,Math.round(cobMes/META_TOTAL*100));
+  const pct=Math.min(100,Math.round(cob/META_TOTAL*100));
   const circ=2*Math.PI*52;
   const offset=circ-(circ*pct/100);
   const col=pct>=100?'#3ecf8e':pct>=60?'#f0b429':pct>=30?'#f0b429':'#e85d5d';
-  document.getElementById('hero-mes-nombre').textContent=MESES[m]+' '+y;
-  document.getElementById('hero-num').textContent=fmt(cobMes);
+  document.getElementById('hero-num').textContent=fmt(cob);
   document.getElementById('hero-num').style.color=col;
   document.getElementById('hero-pct').textContent=pct+'%';
   document.getElementById('hero-pct').style.color=col;
@@ -412,13 +398,14 @@ function kpis(){
 }
 
 function metas(){
-  const {y,m}=mesActual();
-  document.getElementById('metas-title').textContent=`Metas ${MESES[m]} ${y}`;
+  const now=new Date();
+  const mes=MESES[now.getMonth()]+' '+now.getFullYear();
+  document.getElementById('metas-title').textContent='Metas '+mes;
   const tipos=['Proyectos Operados','Venta Nueva','De Pulso'];
   const cobs={'Proyectos Operados':0,'Venta Nueva':0,'De Pulso':0};
   recs.filter(r=>!r.fields[F.done]).forEach(r=>{
     const t=r.fields[F.t]||'';
-    if(tipos.includes(t))cobs[t]+=cobradoEnMes(r,y,m);
+    if(tipos.includes(t))cobs[t]+=cobrado(r);
   });
   const nombres={'Proyectos Operados':'Operados','Venta Nueva':'Venta Nueva','De Pulso':'De Pulso'};
   document.getElementById('metas-grid').innerHTML=tipos.map(tipo=>{
@@ -428,7 +415,7 @@ function metas(){
     const r2=42,circ=Math.PI*r2,offset=circ-(circ*pct/100);
     const ca=pct>=100?'#3ecf8e':pct>=60?col.hex:pct>=30?'#f0b429':'#e85d5d';
     return `<div class="meta-card">
-      <div class="meta-header"><div class="meta-name" style="color:${col.c}">${nombres[tipo]}</div><div class="meta-mes">${MESES[m]} ${y}</div></div>
+      <div class="meta-header"><div class="meta-name" style="color:${col.c}">${nombres[tipo]}</div><div class="meta-mes">${mes}</div></div>
       <div class="gauge-wrap">
         <svg class="gauge-svg" viewBox="0 0 120 70">
           <path d="M 10 58 A ${r2} ${r2} 0 0 1 110 58" fill="none" stroke="#252a3a" stroke-width="10" stroke-linecap="round"/>
@@ -458,6 +445,7 @@ function estClass(e){
   if(l.includes('pendiente')||l.includes('cobrar'))return 'ec';
   if(l.includes('proceso'))return 'ei';return 'en';
 }
+
 function cards(){
   const g=document.getElementById('grid');
   let list=(af==='todos'?recs:recs.filter(r=>(r.fields[F.t]||'')===af)).filter(r=>!r.fields[F.done]);
